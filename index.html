@@ -1,0 +1,687 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Roman Census Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control band over a full-width map; on wide screens the census list sits in a right-hand column. */
+:root {
+  --bg:#ECEFED; --panel:#F8F9F7; --sea:#D3DEE1; --land:#FBFBF8; --coast:#8A989C; --grat:#C2CED1;
+  --ink:#1B2225; --muted:#5A666A; --rule:#CCD3D3; --accent:#24495A; --band:#7A5C2E;
+  --j-rome:#A3172F; --j-imp:#1E5AA8; --j-sen:#21854D; --j-equ:#CF761A; --j-cli:#7A3EA6; --j-civ:#CC3D7A; --j-late:#0F7F7E;
+  --f-display:"Cinzel", "Trajan Pro", "Times New Roman", serif;
+  --f-body:"Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --f-data:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#0F1417; --panel:#161D21; --sea:#132029; --land:#25333B; --coast:#4B606A; --grat:#1E2C35;
+  --ink:#E2E8EA; --muted:#93A2A8; --rule:#2C3A41; --accent:#9CC6D8; --band:#D6AB5E;
+  --j-rome:#FF5E71; --j-imp:#66A4F4; --j-sen:#52CC88; --j-equ:#F4A646; --j-cli:#BC88EC; --j-civ:#F37FAF; --j-late:#41CAC4;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg:#0F1417; --panel:#161D21; --sea:#132029; --land:#25333B; --coast:#4B606A; --grat:#1E2C35;
+  --ink:#E2E8EA; --muted:#93A2A8; --rule:#2C3A41; --accent:#9CC6D8; --band:#D6AB5E;
+  --j-rome:#FF5E71; --j-imp:#66A4F4; --j-sen:#52CC88; --j-equ:#F4A646; --j-cli:#BC88EC; --j-civ:#F37FAF; --j-late:#41CAC4;
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 32px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: grid; gap: 4px; }
+h1 { font: 600 clamp(22px, 3.2vw, 32px)/1.1 var(--f-display); letter-spacing: .06em; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; max-width: 70ch; }
+
+.grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "controls" "map" "panel" "legend"; }
+.grid > * { min-width: 0; }
+.controls { grid-area: controls; } .mapbox { grid-area: map; } .panel { grid-area: panel; } .legend { grid-area: legend; }
+@media (min-width: 1040px) { .grid { grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: auto auto 1fr; grid-template-areas: "controls panel" "map panel" "legend panel"; align-items: start; column-gap: 16px; } }
+
+/* controls */
+.controls { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px 10px; display: grid; gap: 10px; }
+.readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.readout .span { font: 500 20px/1.2 var(--f-data); font-variant-numeric: tabular-nums; }
+.readout .count { color: var(--muted); }
+.readout .play { margin-left: auto; }
+.tl { position: relative; height: 66px; }
+.tl svg { position: absolute; inset: 0 0 auto 0; width: 100%; height: 48px; display: block; }
+.tl input[type=range] { position: absolute; left: 0; right: 0; top: 30px; width: 100%; margin: 0; height: 22px; background: none; pointer-events: none; -webkit-appearance: none; appearance: none; }
+.tl input[type=range]::-webkit-slider-runnable-track { height: 22px; background: transparent; }
+.tl input[type=range]::-moz-range-track { height: 22px; background: transparent; }
+.tl input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; pointer-events: auto; width: 14px; height: 22px; border-radius: 3px; background: var(--band); border: 2px solid var(--panel); cursor: ew-resize; }
+.tl input[type=range]::-moz-range-thumb { pointer-events: auto; width: 12px; height: 20px; border-radius: 3px; background: var(--band); border: 2px solid var(--panel); cursor: ew-resize; }
+.tl input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tl input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.axis { display: flex; justify-content: space-between; font: 11px var(--f-data); color: var(--muted); margin-top: -4px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.row .lab { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button, .chip { font: 500 12.5px/1 var(--f-body); color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.on { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.chip { display: inline-flex; gap: 6px; align-items: center; user-select: none; }
+.chip input { margin: 0; accent-color: var(--accent); }
+
+/* map */
+.mapbox { position: relative; background: var(--sea); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+#map { display: block; width: 100%; height: auto; aspect-ratio: var(--ar); max-width: 100%; cursor: crosshair; touch-action: pan-y pinch-zoom; }
+#map.zoomed { touch-action: none; cursor: grab; }
+#map.dragging { cursor: grabbing; }
+.mapui { position: absolute; top: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; max-width: calc(100% - 16px); }
+.mapui button { background: var(--panel); padding: 5px 9px; font-size: 12px; }
+.mapui .z { width: 28px; padding: 5px 0; text-align: center; font: 500 14px/1 var(--f-data); }
+.sea { font: italic 13px var(--f-body); fill: var(--muted); opacity: .7; letter-spacing: .12em; text-anchor: middle; pointer-events: none; }
+.rlab { font-family: var(--f-display); font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--land); stroke-width: 3px; stroke-linejoin: round; letter-spacing: .05em; pointer-events: none; }
+@media (max-width: 640px) {
+  .mapui { position: static; justify-content: flex-start; max-width: none; padding: 8px; border-top: 1px solid var(--rule); background: var(--panel); }
+  .hint { display: none; }
+  .axis span:nth-child(even) { display: none; }
+}
+.hint { position: absolute; left: 10px; bottom: 8px; font-size: 11.5px; color: var(--muted); background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 3px 8px; border-radius: 4px; pointer-events: none; }
+
+/* legend */
+.legend { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px; }
+.legend h3, .panel h3 { font: 600 11px/1.2 var(--f-body); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.legend ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.legend li { display: flex; gap: 8px; align-items: center; font-size: 12.5px; }
+.sw { width: 22px; height: 14px; border-radius: 2px; flex: none; }
+.legend svg { flex: none; }
+
+/* panel */
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 14px; display: grid; gap: 12px; min-width: 0; }
+@media (min-width: 1040px) { .panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); max-height: calc(100vh - 24px); overflow: auto; } }
+.ph { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+.ph h2 { font: 600 17px/1.25 var(--f-display); letter-spacing: .04em; margin: 0; text-wrap: balance; }
+.ph .meta { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.reglist { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.reglist button { width: 100%; display: flex; gap: 8px; align-items: center; border: 0; border-radius: 6px; padding: 7px 6px; text-align: left; font-size: 13px; }
+.reglist button:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.reglist .n { margin-left: auto; font: 12px var(--f-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.dots { display: inline-flex; gap: 2px; }
+.dots i { width: 8px; height: 8px; border-radius: 2px; display: block; }
+.grp + .grp { border-top: 1px solid var(--rule); padding-top: 10px; }
+.grp h4 { margin: 0 0 6px; font: 600 13px/1.3 var(--f-body); display: flex; gap: 7px; align-items: center; }
+.cens { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.cens li { display: grid; gap: 1px; padding-left: 10px; border-left: 3px solid var(--c); }
+.cens .d { font: 500 12.5px var(--f-data); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.cens .o { font-size: 13.5px; }
+.cens .e, .cens .x { font-size: 12px; color: var(--muted); }
+.badge { font: 600 10px/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; padding: 3px 5px; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); }
+.badge.disp { border-style: dashed; }
+.q { display: inline-flex; gap: 2px; }
+.q i { width: 6px; height: 6px; border-radius: 50%; background: var(--c); display: block; }
+.q i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--c); opacity: .6; }
+.empty { color: var(--muted); font-size: 13px; margin: 0; }
+.close { padding: 4px 9px; }
+
+.notes { color: var(--muted); font-size: 12.5px; max-width: 95ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Roman Census Atlas</h1>
+    <p class="sub">Every census in the catalogue, 405 BC to AD 400. Set a span of years with the two handles. Colour shows who held jurisdiction, strength of fill shows how well the census is documented, and blur shows how uncertain its territorial reach is. Click the map or a region in the list to see the censuses behind the shading.</p>
+  </header>
+
+  <div class="grid">
+      <section class="controls" aria-label="Year range">
+        <div class="readout">
+          <span class="span" id="span">AD 1 – AD 25</span>
+          <span class="count" id="count"></span>
+          <button class="play" id="play" type="button" aria-pressed="false">Play ▸</button>
+        </div>
+        <div class="tl">
+          <svg id="hist" viewBox="0 0 1000 48" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <input type="range" id="lo" min="-405" max="400" step="1" value="-27" aria-label="Start year (negative values are BC)">
+          <input type="range" id="hi" min="-405" max="400" step="1" value="14" aria-label="End year (negative values are BC)">
+        </div>
+        <div class="axis" aria-hidden="true"><span>400 BC</span><span>300</span><span>200</span><span>100</span><span>1 BC | AD 1</span><span>100</span><span>200</span><span>300</span><span>AD 400</span></div>
+        <div class="row" id="presets"><span class="lab">Jump to</span></div>
+        <div class="row">
+          <span class="lab">Include</span>
+          <label class="chip"><input type="checkbox" id="t-disp" checked> Disputed claims</label>
+          <label class="chip"><input type="checkbox" id="t-abort" checked> Aborted censorships</label>
+          <label class="chip"><input type="checkbox" id="t-und" checked> Undated inscriptions</label>
+        </div>
+      </section>
+
+      <div class="mapbox">
+        <svg id="map" role="img" aria-label="Map of the Roman world with census regions highlighted for the chosen years"></svg>
+        <div class="mapui">
+          <button type="button" data-view="all">Whole map</button>
+          <button type="button" data-view="west">West</button>
+          <button type="button" data-view="centre">Italy &amp; Balkans</button>
+          <button type="button" data-view="east">East</button>
+          <button type="button" data-view="levant">Levant &amp; Egypt</button>
+          <button type="button" class="z" id="zin" aria-label="Zoom in">+</button>
+          <button type="button" class="z" id="zout" aria-label="Zoom out">−</button>
+        </div>
+        <div class="hint" id="hint">Click a shaded area · scroll to zoom</div>
+      </div>
+
+      <section class="legend" aria-label="Legend">
+        <div><h3>Jurisdiction</h3><ul id="lg-j"></ul></div>
+        <div><h3>Evidence (fill strength)</h3><ul id="lg-q"></ul></div>
+        <div><h3>Territorial reach (edge blur)</h3><ul id="lg-b"></ul></div>
+      </section>
+
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>
+
+  <section class="notes">
+    <p><b>Shapes are schematic.</b> Province outlines are hand-drawn approximations, clipped to modern coastlines. Their inland edges are not survey boundaries, and Roman provincial borders moved over time. Ager Romanus before 89 BC was discontinuous; it is drawn as one blurred block.</p>
+    <p><b>Jurisdiction categories.</b> Senatorial provinces were governed by proconsuls, so "senatorial" and "proconsular" are one category here. Imperial provinces are split into those run by a legate of Augustus and those run by an equestrian prefect or procurator (Egypt, Judaea). After 284 the senatorial/imperial split stops meaning much for census work, so Tetrarchic and later assessments get their own colour. Republican-era city censuses in Sicily and Bithynia are civic.</p>
+    <p><b>Dates.</b> Republican censuses are dated by year of election. Egyptian census years run from 29 August, so 33/34 means the census of the Egyptian year beginning in AD 33. Undated career inscriptions are given an assigned span (often the whole Principate) and the lowest evidence rating; switch them off under Include to see only datable operations. Several prefects' names and inscription concordances in the source catalogue were marked for verification; check Broughton's <i>MRR</i>, Bagnall &amp; Frier, and Le Teuff (2012) before citing.</p>
+  </section>
+</div>
+
+
+<script>
+const GEO = {"W":1000,"H":655,"land":"M548.8,27.2L549.5,27.7L550.8,27.1L552.3,27.3L555.8,29.5L556.2,30.1L554.2,30.5L550.6,34.2L550.4,34.8L548,34.8L546.7,35.3L545.7,36.5L545.5,38.6L544.8,40.3L543.2,41.1L543,39.9L544.9,36.6L541.7,34.7L542.6,32.2L541.2,30.1L542.6,29.8L543.5,30.4L544.3,29.6L545.3,29.7L545.9,28.2L548,27.2ZM594.7,457.9L597.5,457.7L599.3,456.4L599.9,457.5L598.6,458.3L600.9,458.6L601.9,460.5L603.9,460.3L607.9,458.9L612.2,458.8L613.9,459.8L616.7,459.7L619.5,460L623.3,458.9L623.7,459.2L623.9,462.6L625.3,462.7L628,460.9L630.1,460.7L631.7,458.7L632,459.5L631.6,463.7L630.5,464.3L625.3,464.7L616,466.8L609.9,467.8L609.1,467.6L608.3,465.1L604.5,464.1L595.6,463.2L591.9,463.7L590.7,462.7L590.3,460.5L591,457.6L592,458.5L592.8,455.8L593.8,457.6ZM583.6,395.3L584.5,397.2L590.6,399.8L593.8,399.8L595.7,402.8L595.4,403.5L597,407.9L598.3,408.9L601.3,408.9L601.7,411.2L600.7,412.2L598.5,411.5L596.3,409.9L595.8,408.3L593.3,405L589.3,405.2L587.7,404.5L587,402.5L585.4,401.5L581.4,398.3L578.1,397.2L576.8,397.9L575.9,397.4L579.7,394.7L582,394ZM752.9,435L746.2,442L746,443.7L748.9,447.2L743.7,448.5L741.6,452.1L738.6,454.3L735.9,455.2L734.8,456.5L734.7,457.8L733.7,457.8L732.3,456.5L729.8,457.2L725.8,456.4L723.1,452.6L722.5,450.3L723.9,450.7L726.1,448.3L727.4,447.6L729.3,447.7L730.8,447L731,443L733.8,443.1L738.9,442.6L741.1,441.8L747.4,438.3L749,436.7L752,434.5L754,433.5ZM513,44.2L512.2,44.7L511.7,46L510.4,46.8L510.2,51.1L511.5,52.7L510.2,53.4L509.4,55.8L507.7,56.7L506.1,58.8L505.7,61L503.6,62.1L505.1,58.9L504.3,58L503.1,55.3L503.6,54L503.4,49.8L506.1,45.8L507.5,44.4L509.4,43.7L510.2,44.3L511.2,42.6ZM443.6,82.9L443.5,84.8L442.8,85.7L440.8,86.5L439.5,88.8L441.3,90.4L441.5,92.4L440.4,93.3L437.8,94.1L437.4,96.3L437,101.2L434.9,101.9L433.7,99.1L433.8,98L433.1,93.8L430.4,93.1L429.1,93.2L427.9,90.8L428.4,88.1L427.8,85.5L426.6,84.6L426.4,83.1L430.2,82.8L431.8,80.4L432,79.2L433.7,79L434.3,80L434.1,83.4L435.5,84.1L436.7,81.7L436.9,80.4L436.3,79L440.2,76.3L441.3,76.3L444,77.5L444.3,78.1L443.3,80.3ZM422.6,85L424.1,90.6L423.7,91.6L423.5,94.2L421.6,95.6L419.6,95.5L414.8,93L413.7,89.2L414,86.1L418.8,84.7L421.1,85.9ZM295.8,367.9L297,368.7L298.5,368.4L300,369.1L299.9,370.3L296.9,373.9L296,375.5L293.3,376.7L289.4,374L289.3,372.1L287.9,371L285.8,372.2L284.5,370.8L284.4,369.4L290.9,365.9L292.7,365.2L296.5,364.7L296.8,366.2ZM997,297.1L995.5,295.9L994,293.4L994.6,293.4ZM917.2,209L916.3,209.9L914.4,208.5L914,206.5L914.8,205.5L914.8,208.1ZM918,206.4L916.9,205.8L917.7,204.3ZM388.8,358.8L389.4,360.1L390.6,365L390.2,367.1L388,370.1L388.5,373.4L386.2,386.9L385.2,390.3L384.1,390.7L381,389L379.3,389.2L378.1,388.3L377.3,391.9L375.1,394.1L371.7,393.5L371,392.8L368.9,388.1L369.2,383L370,381.6L370.7,378.2L371.6,378.6L371.9,376.6L370,375L370.3,372.8L371.3,371.2L371.6,368.2L370.8,367L370.3,364.2L368.3,361.2L368.4,359L369.3,356.5L370.4,357.6L372.5,358.2L374,358.1L377.6,356.6L380.4,353.8L381.9,353.4L383.8,351.4L384.4,352.5L386.8,353.7L388.8,356.5L387.8,357.8ZM389.7,323.2L389.1,325.9L389.9,328L389.7,335.2L387.2,339.3L386.8,342.9L384.5,347.7L383.4,349L379.6,346.3L378.5,344.8L379.8,342.8L377.6,341.5L378.2,338.5L376.6,338.3L377.9,336.3L377.9,335.4L376.5,334L376.3,332.9L377.9,331.8L376.6,330.4L378.9,327L380.4,326.1L383.6,325.4L385,324.2L386.9,325.1L387.7,323.8L387.9,320.5L388.4,319.2L389.7,320ZM470.9,412.1L469.3,415L465.7,420L463.7,426L463.9,428.3L465.5,430L464.6,430.7L466.3,432.7L466.4,434.3L464.1,436.5L463.4,438.5L463.5,440.3L460.2,439.5L458.6,439.7L454.6,438L452.6,434.7L449.4,432.2L445.9,432.1L444.4,431.4L441.3,429.1L438.1,427.2L435.4,424.7L433.5,424.1L431.8,422.9L428.6,422.7L426.1,420.7L424.9,417.9L426.8,413.7L428.5,412.8L429.6,411.4L432,414.3L434.1,413.5L435.8,411.6L438.6,411.9L439,412.9L440.5,413.4L443.2,415.4L444.8,415.8L448.6,414.8L452,415.4L455.3,415L457.2,414.3L458.7,413.1L460.2,412.7L464.2,413.2L466.6,411.8L467.5,412.1L469.8,410.7L471.7,411.2ZM287.8,7.9L287.6,9.5L285.9,11.4L283.6,12.5L279.1,15.2L276.5,16.4L275.6,18.4L277.2,19.4L274.4,21.6L273.3,23.3L276.1,23.5L281.3,22.6L284.4,24L286.8,24.2L292.9,25.8L294.7,25.8L295.8,26.5L296.5,27.9L296.9,30.4L293.5,34.3L292.1,37.1L289.4,41.2L287.1,43.3L284.6,46.2L282.4,47.2L279.4,47.2L277.4,48L280.9,48.6L283,50.6L282.5,51.8L281.3,52.5L279.1,52.2L276.5,53.8L274.3,54.4L271,52.9L271.7,54L277.3,56.6L279.8,55.7L282.3,56.2L286.6,59.6L289,64.7L290.4,67L290.6,68.4L290.7,77.7L291.2,82.8L292.2,85.3L296,88.3L296.8,89.2L299.3,94.1L301.8,97.7L300.1,99.2L300.6,102.3L302.2,107.6L300.2,106.6L298.3,104.4L295.8,104.7L297.9,105.2L301.8,110.3L302.9,113L303.2,116.5L302.3,117.9L298.8,120.6L301.1,122.9L302.4,122.8L304.8,120.6L306.5,120.7L310.4,121.7L313.8,123.6L316.5,126.7L316.9,128.3L316.6,132.2L313.2,139L310,140.9L309.1,140.5L309.1,142.9L306.9,143.6L305.3,142.9L302.7,143.9L304.3,145L303.8,147.2L302.6,147.6L300.2,147.5L300.8,150.2L303.1,151.1L307.4,151.6L309.2,152.1L308.4,155.5L307.9,155.9L303.8,157.2L302.4,159.3L300.2,158.7L294.2,160.6L293,160.6L288.5,158.8L285.5,158.3L281.5,158.3L277.8,156L274.6,154.4L275.3,156L272.9,156.9L268.7,156.6L266.8,156L267.2,158L266.3,158.2L262.8,156.8L261.7,157.3L260.4,156.7L258.1,154.4L255.5,153.6L250.5,154.1L249.2,155.4L247.1,159.3L245.6,160.5L244.2,160.4L240.5,156.4L238.9,156.6L236.4,156.3L233.6,156.6L229.2,158.5L227.9,160L226.6,160L225.7,158.6L224.5,157.9L222.1,158.3L222.1,156.7L223.4,155.8L226.3,155.6L229.2,153.9L231.3,152.1L237.5,148.2L239.1,144.7L241.9,144.4L243.9,141.8L248,142L250.7,142.6L253.3,143.8L256,144.3L257.3,143.8L259.8,141.3L264,138.3L266.3,136.3L262.1,138.5L259.3,138.6L255,140.5L252,139.4L250.3,136.5L248.5,134.9L245,134.7L247.1,133.4L245.1,132.5L244.1,131.1L241.7,130.6L237.7,131.7L235.6,129.6L235.4,126.6L234.8,126.1L237.3,124.4L239.9,124.2L246.2,122.7L249.4,121L252.3,117.5L251.4,116L252.3,114.4L252,112L252.6,110.3L249.6,110L246.8,110.8L245.6,110.7L246.5,109.3L249.6,107.7L250.9,106.2L253.8,104.7L257.5,103.9L259.3,104.5L263.1,104.4L265.2,106.6L265,103.9L266.3,103.6L267.4,106.2L269.3,106.5L267.6,105.4L266.6,102L267,100.6L269.1,98.2L268.1,97.2L268.8,94.8L270.4,94.1L271.7,91L271.6,90.1L268.2,90.3L266.9,88L265.3,83L265.5,81.1L267.7,77.6L270.4,75.6L273.1,75.3L268.9,74.1L267.6,74.1L264.8,74.9L262.5,76.2L260.6,75.7L260.1,74.5L259,74.2L256.4,75.1L253.6,72.7L251.8,75.3L250.2,71.6L250.5,69.1L251.7,69.4L253.4,66.6L258.1,60.9L258.1,58.9L256.8,56.6L257.8,53.4L258.8,52.3L261.1,53L258.9,50.2L259.9,48.3L258,50.4L256,50.7L254.1,52.2L254.5,50L255.8,48.1L258.2,46.4L254.5,48.3L252.8,49.7L252.3,52.9L248.3,60.6L247.1,61.5L246.2,61.1L246.1,59.9L248.7,55L250.8,53L249.7,52.5L251,48.1L251.9,46.7L252.7,44.6L255.5,40.1L258.7,36.1L252.8,39L250.8,37.9L250.3,36.9L250.4,35.2L248.8,34.3L250.1,33.7L251.8,33.8L253.6,32.8L252.5,31.5L254.1,30.8L256.3,28.5L257.2,26.2L256.7,24L255.6,22.8L255.6,21.7L256.5,20.6L258.5,20.2L257.7,19.5L257.5,17.5L259.9,13.8L262.5,14.6L263.2,14.2L264.4,15L262.8,11.3L264.4,7.8L267.7,8.2L267.4,6.4L268.4,3.2L270.2,2.2L271.2,2.8L271.9,4.2L274.3,3.7L274.7,4.9L277.3,4.6L280.6,5L284.9,5.2L286.9,5L288.9,5.8ZM229.5,62.1L231.2,62.1L232.6,60.5L235.3,61L237.9,60.8L241.4,62.2L242.1,63.8L242,66.1L242.7,68.5L243.9,70.8L243.6,71.9L241.5,72.7L241.3,73.6L242.9,73.4L244.5,74L245,77.3L244.5,78.3L243,75.8L242.4,79L243.4,79.5L242.4,81.1L239.8,81.2L237.9,83.6L236.9,84L234.9,82.8L235.2,84.3L233,84.3L233,91.1L233.2,92.4L231.9,97.5L231.9,101.6L231.3,104.6L229.6,106.5L228.1,109L227.3,111.1L225.2,113.3L223.6,114L224.7,116.2L221.7,116.6L219.4,115.5L217.9,116.1L217.5,114.2L216.7,115.6L210.5,115.2L208.3,116.9L206.2,116.9L204.5,118.1L202.1,118.4L200.9,116.5L199.5,116.2L200,117.1L199.4,119.1L196.3,119.9L194.5,119.6L193.3,120.3L187.5,120.3L185.8,119.1L182.4,119.2L181.3,118.6L183.4,116.9L185.6,116.4L185.3,115.8L181.6,115.5L178.8,115.5L179.7,114.7L184.2,112.8L186.2,112.4L180.2,112.6L177.5,111.2L177.5,109.8L180.9,107.9L183.5,107.5L183.7,106.5L178.9,105L179.7,103.8L182.6,103.2L184.5,104.7L186.4,105L185.8,104.1L185.8,101.8L189.6,100.1L196.3,100.8L199.6,100.6L197.8,98.5L195.1,100.1L192.6,99.7L191,98.5L188.3,99.1L186.6,98.8L189,98L192.1,96.3L194.1,94.6L193.7,93.5L196.3,91.3L199.9,91.1L200.9,90.5L198.9,89.1L195.2,88.2L194.3,87.6L194.2,86.2L191.8,85.5L192.6,84.3L189.4,82.9L190.2,81.9L190,80.4L194.5,80.7L192.8,79.1L193.3,77.9L195.3,77.4L197.2,77.5L197.6,76.2L195.9,75.4L194,75.3L195.4,73L195.9,71.3L194.9,71.4L195.1,69.3L193.7,69.4L194.7,67.7L197.2,68.3L198.5,68L202.8,69.4L204.1,71.6L206.1,70.6L210.7,72.9L210.4,70.8L211.5,69.9L215.5,69L217.2,66.9L213.6,66.4L210.8,64.2L212.4,63.1L216,61.6L216.5,59.1L218.4,57.2L221.5,57.1L224.2,58L224.4,56.8L225.7,57.3L225.9,59.8L224.7,60.8L224,62.3L226.3,61.4L226.5,58.6L227.8,57.1L229.5,57.3L229.1,56L230.4,56.5L232.8,59.4L230,60.6ZM1000,466.7L998.7,466.5L997.5,465.7L998.7,464.6L1000,464.6L1000,466.7ZM1000,462.7L998.5,462.6L996.6,463.4L997.5,464.1L996,465.7L996.1,467.1L997.9,470.6L997.1,472.6L994.7,473.6L993.9,475L992,476.4L986.6,476.4L984.4,477.8L985.8,480.8L989.3,483.8L989.7,484.6L986.7,484.8L984.2,489.7L986.4,489.9L988.6,488.7L989.6,489L994.1,494.8L997.9,497.8L999.6,499.8L1000,500.2L1000,655L879.1,655L879,654L876.3,652.4L877.3,652.2L874,649.7L871.3,645.3L867.3,641.3L865.2,638.7L861.3,635.8L853.8,632.2L852.1,632.5L849.9,631.3L846.9,631.7L842,626.5L838.5,623.3L839.3,620.4L837.7,617L836,614.7L830.6,609.1L827.5,607.6L824.8,602.6L821.9,602L815.5,593.9L812.2,591.3L810.7,589.4L807,586.5L804.8,583.3L801.1,580.8L797.3,575.8L792.2,571L790.3,570.4L784.3,570.8L783,572.3L782.6,570.8L783.2,568.4L783.9,563.6L783.4,559.6L783.5,544.9L783,543.7L781.5,546.3L780.3,549.7L780.3,559.5L779,567.5L779.7,572.2L779.5,573.9L777.5,579.2L774.4,578.6L768.9,575.4L765.5,572.1L762.2,570.1L758.8,567.3L757.4,563.6L754.3,558.5L750.2,555.2L747.1,551.2L744.9,546.3L743,543.3L741.8,544.5L742.2,545.8L740.9,550.3L741.8,551.9L745,554.2L746.9,557.7L747.4,561.3L748,562.4L750.5,564.7L753.1,568.4L755.5,570.4L759.3,574.1L762.6,576.5L764.9,577.6L766,578.8L767.1,584.2L770.4,588.7L772.4,589.7L774.7,593.5L777.2,600.8L779.1,602.3L785.7,611.2L790.9,616.6L793.8,620.9L797.8,625.9L806.2,637.2L810.5,640.3L812.3,642.1L815.2,643.3L818.4,645.1L815.7,645.4L814.3,646.3L814.3,649.1L815.8,655L0,655L0,521.9L1.5,520.7L4.3,520.4L9.6,521.6L17.9,522.1L25.8,521.1L28.2,520.5L31.1,518.6L35.6,516.3L43.4,514.4L47,513.1L53.3,508.9L57.7,505.1L61.1,502.9L63.6,500.7L65.6,498.4L67.6,494.3L67.7,492.4L66.8,489.1L65.7,487.9L65.8,486.5L67.2,484.4L68.4,480.4L70.8,474.2L74.4,469.8L81.4,464.6L83.2,462.1L85.6,456.4L93.6,452.1L98.6,448.4L104,446.4L116.4,444.8L123.5,443.1L127.9,441.6L130.8,439.3L139.9,429.4L150,414.7L151,413L155.6,413.4L159.3,412.4L160.9,413.3L159.8,414L159.3,415.9L159.9,418.6L161.4,421.8L164.5,426.1L167.3,428.2L171.4,430.1L176.9,429.9L179.8,430.6L181.3,430.3L182.6,431.6L185.5,432.5L188.3,432.7L190.8,431.8L192.5,430.5L192.4,432.2L193.3,435.9L196.2,436.9L199.4,437.4L205.3,439.4L206.8,439.6L210.8,438.8L214,437.2L216.4,436.5L220.9,433.4L223.8,432.3L231.7,430.2L235.1,431.7L237.2,431.8L238.8,430.9L240.9,428.3L247,425.6L251.3,424.7L254.2,423.6L258.7,423L269.3,423.9L274.8,424.1L278.5,424.8L282.6,422.9L284.6,422.4L292.6,423.4L296.7,422.2L311,424.2L314.3,426.3L316.9,429.1L318.3,429.9L320.3,429.6L325,427.9L330.1,427.3L333,426.3L334.4,424.5L336.8,424L337.9,425.7L342.9,427.8L347.6,427.4L347.4,425.1L350.6,426.1L353.1,427.4L355.6,429.9L357.3,430.6L360.5,429.9L367.2,430L370.9,429.3L376,426.1L384.2,424.1L386.3,424.8L385.4,426.5L386,428L387,427.2L386.8,425.9L389.9,426.2L391.5,427.1L391.1,430.3L393,433.6L392.3,435.1L394,436.1L395.6,435.1L396.5,433.6L399.4,432.8L402.4,430.7L403.9,430.5L404.7,434.3L402.2,436.5L399.4,440.9L397,442.1L395.1,443.8L394.2,446.5L394.4,449.1L395.5,451.9L396.8,453.6L398.2,454.2L401.3,457L401.6,462.6L402.6,464.4L399.9,468.1L398.3,470.7L395.4,474.3L392.8,476.6L387.4,480L385.2,482.3L384.7,485.1L386.1,489.1L388.2,491.5L390.4,492.9L394.4,492.7L394.3,496L397.1,495.8L398.1,494.1L400,495.4L400.8,499.1L402.5,500.7L401.4,501.4L403.5,502.3L404.5,502L408.4,504.3L410.7,504.8L417.8,509.6L420,510.3L425.1,511.1L431.2,509.5L433.5,509.3L439.1,511.7L442,511.9L448.2,514.2L452.5,517.5L462.8,520L464.2,521.5L465.6,524.4L465.6,527.9L467.6,533.8L470.9,538.2L472.9,539.4L477.5,541.2L482.8,542L488,542.3L497.1,544.7L504.8,547.6L506.8,549L510.6,550.3L518.5,556.9L522.9,559.2L525.9,559.6L528.6,559.1L533.3,556.6L535.3,555.2L540,549.2L541.4,546.1L542,543.9L541.1,539.8L539.7,537.8L538.6,535.1L537.9,530.2L538.6,526.8L540.8,522.6L544.5,518.5L548.4,515.6L555.1,511.7L559.1,511.4L560.8,511L563.9,508.2L567.1,508.6L572.6,508.1L575,508.7L577.9,510.1L581.6,510.9L587,512.8L587.8,515.9L587.6,518.1L590.6,520.1L598.7,520.5L600.3,521L604.2,522.9L609.7,522.7L612.9,522L616,522.3L618.5,524L622.3,530.2L624.8,530.4L632.7,527.6L641.8,528.7L646.8,528.9L654.6,529.8L659.6,532.3L660.9,532.5L664.2,532.1L666.6,533.6L675.4,533.4L680.3,534.7L683.2,536L686.2,536L690.3,533.7L692.6,531.8L697.4,527L699.2,526L702,525.7L704.1,521.6L706.8,520.9L712.1,518.3L711.6,519.2L706.9,522L709,521.9L713.6,520.1L714,517.5L716.3,517.3L721.9,518.8L723.2,518.6L727.3,516.3L728.6,516.8L731.8,519.3L730.9,519.4L727.5,517.4L727.5,518.7L726.3,521.2L730.2,521.9L732.1,524L733.7,523.2L734.6,521.5L733.2,520L735.1,520.4L740.1,523.1L744.7,521.4L748,519.7L749.3,521.1L752.1,519.7L756.6,518.8L760.1,517.2L764,514.1L766.6,510.2L767.7,507.9L769.6,501.7L770.5,495.8L770.8,487.8L771.8,480.9L771.9,478.7L772.8,472.6L773.7,470.3L774.9,462.9L775.9,459.8L775.6,455.8L777.2,451.8L779.3,449.3L779,447.8L776.9,444L776,440.3L776.2,437.1L774.8,433.7L772.2,431.4L772.2,426.2L773.3,423.1L770,417.9L770.6,415.9L774.1,410.4L773.3,407.8L771.1,406.3L768,409.5L766.2,410.9L764.9,413.6L762.9,414.4L759.5,414L755.8,413L753.6,412.1L751.9,412.1L750.6,413L746.8,417.1L743.7,422.7L739.5,426.5L737.1,427.7L735.9,427.7L731,429.6L728.5,430.2L726.7,431.6L722.7,431.1L720.1,430L715.7,425.8L713.8,424.5L710,423.7L703.2,421.3L697.2,421.4L692.6,421.8L691.9,423.2L692.3,428.2L691.8,429.7L691.8,432.3L690.6,433.7L688.1,432.9L686.1,434.3L682,436.4L680.5,436.9L675.2,435.7L671.9,433.6L669.6,428.4L668.5,428.1L667.5,429L664.8,428.8L661.2,427.4L658.5,427.6L657.2,430.1L654.7,431.4L655.4,429.1L651.3,429.9L649.3,431.3L646.2,431L646.3,430.3L648.7,429.3L653.1,428.3L654.1,427.8L655,426L657.1,423.7L648.7,425.2L644,425.5L642.8,426.5L642.4,424.6L646.4,422.6L646,421L643.7,419.6L641.3,419L640.9,417.1L638.6,413.7L640.7,412.8L640.8,409.8L640.2,408.1L635.9,407L635,407.3L633.8,405.9L631.8,405L630.5,406L626.7,404.7L626,404.1L626.6,402.3L627.6,402.3L627.7,400.9L626.6,397.6L628.5,397.3L629.8,398.5L630.1,401.1L631.4,402.5L631.6,401.1L634.1,401.5L637.4,400.3L637.9,399.6L635.5,399.9L633.3,398.1L632,395.4L633.9,394L635.2,391.8L633,391.4L632,389.8L632.4,387.8L629.6,384.9L629.9,384L632.4,380.4L631.1,379.7L626.4,381L624.5,381.9L621.2,382.5L620.9,380.7L621.5,379L620.9,375L621.2,372.8L623,372L624.9,368.6L628.2,364.4L632,364.1L633.4,362.9L635.7,362.6L636.5,364L638.7,364.8L642.2,364.2L643.7,363L641.9,361.4L642.3,360.8L645.4,360.8L644.8,362.9L645.4,363L649.8,361.8L654.6,361.7L659.9,360.7L660.4,360L656.5,358.5L658.6,356.5L666,354L670.6,352.7L669.9,352.4L663.8,352.4L662.2,351.9L658.9,349.4L659.1,346.2L659.7,345.3L662.1,344.8L670.5,345.1L676.3,343.3L683,344.4L689,343L690.1,341.9L691.2,338.7L698.9,332.3L701.5,329.3L704.4,327.3L709.6,324.8L713.8,321.9L715.1,321.4L726.2,320.3L733.7,318.9L736.8,316.3L738.9,316.5L739,319.1L741.9,321.5L745.9,322.5L750.4,320L752.3,320.2L755,324.4L756.8,325.7L758.7,326.5L760.2,326.4L761.7,324.3L763.4,323.8L766.6,324.7L768.1,326.1L773.3,326.2L777.9,325.7L780.2,326.7L787,326.5L789.3,325.7L792.9,323.3L800.2,319.7L806,320.6L808.6,320L810.5,320.1L812.2,319.3L817.2,315.2L818.6,313.2L820.3,312.3L825.3,306.8L827.8,300.8L827.9,298.5L827.2,295.8L825,293L820.1,284.6L818.8,283.5L814.6,282.9L813.2,281.3L809.6,279.8L805.3,279.9L800,277.6L795.1,275.8L789.3,272.5L786.1,270.1L776.4,265.1L775.3,264.8L770.9,264.8L768.9,264.4L763.5,260.4L761.8,261.5L760,261.7L757.7,261.1L755.4,258.4L754.1,257.4L750.4,256.4L746.4,256.3L745.7,255.3L748.7,253.3L749.4,252.5L746.3,251.6L747.9,250.2L751.4,251.7L753,252L753.4,251.1L758,248.8L757.8,246.7L757,246.7L757.1,243.7L758.6,240.6L758.9,236.7L759.7,235.6L761,237.4L761.6,234.2L765.5,233.4L762.7,231.2L759,229.1L756.9,229.4L755.1,227.4L754.1,225.7L756.7,225.4L759.6,223.1L763.1,223L761.6,220.5L765.7,217.7L769.2,214.6L770.8,213.7L770.8,212.6L768.9,209.9L766.7,210.4L766,212.4L763,213.8L761.5,214.1L763.6,211.4L761.4,212.4L760.6,213.8L757.2,216.4L752.9,217.2L749.4,218.4L747.6,221.9L746.1,222.2L742.9,224.7L741.7,227.1L740.2,226.5L737.1,227.8L735.5,229.5L732.3,230.1L730,231.4L725.6,236.9L724.5,240.5L723.2,242.3L721.8,243L724.5,239.1L724.3,237.4L723.3,236.3L721.8,239.9L719.4,241.9L720.3,245.5L723.4,250.3L727.4,254.3L729.2,255.7L731.7,256L734.9,253.6L737.3,253.6L737.9,252.5L740.5,251.3L744.3,251.6L743.4,254.9L743.4,258.1L741.4,259.3L739.2,259.7L736.9,260.7L735.2,259.8L732.6,259.4L731.4,260L730.4,262.5L728.1,264.5L727.6,266.4L724.9,266.6L722.8,267.3L719.9,269.5L718.2,273.4L715.9,276L713.9,277L710.4,276.8L707.3,275.1L707.9,272.6L708.2,268.3L706.8,265L704.4,263.7L701.8,264.1L697.8,261.9L695.9,262.1L693.9,263L692.4,261.9L695.8,257.7L699.4,254.1L701.1,253.5L703.2,251.7L705.3,249.2L703.9,246.7L701.9,247.8L698.7,246.1L695.6,247.7L693.7,247.9L689.8,249.5L687.8,249L683.6,247.2L681,247.3L680.2,246.6L682.8,245.4L682.8,244.2L678.9,244.1L676.7,242.9L678.7,242.5L680.8,242.8L684.1,242.5L687.1,242.6L689.4,239.5L686.7,241L683.8,240.9L681.5,239.1L680.2,234.2L678.3,231.2L677.2,230.4L680,235.3L680.5,239.1L680.4,240.4L679.3,241L676,240.9L676.1,238.8L674.5,241.8L671.2,242.5L667.1,244.5L666.7,248L664.8,253.2L661.7,258.1L657,261.4L655.2,261.2L654.3,262.7L654.5,264.2L655.5,265.2L656.8,268.7L656.6,275.5L655.9,278.2L649.5,280.7L649.8,279.9L649.1,277.6L649.6,276.6L648.1,276.5L647.1,278L647.8,279.9L647,281.8L646.8,284.6L647.9,284.3L647.6,285.6L645.9,288.3L645.4,289.9L646.3,295.6L645.8,299.1L646.2,304.6L645.2,306.8L643.1,306.4L640.7,307.3L639.7,309.8L638.5,311.5L638.4,314.5L638.9,319.5L637.2,320.5L634.1,325.3L637.4,327.1L641.8,332.3L642.4,333.6L642.3,335.7L643.4,338L645.9,340.9L648.1,342.3L656.9,345.2L658.5,345.3L657.6,349.5L655.3,350.5L648.3,349.6L646.6,349.6L643.4,351.7L640.9,351.6L637.6,352.7L636.9,355.3L634.8,358.4L631.1,361.1L628.5,362.6L624.7,367.4L623,370.2L621.3,371.2L621.9,368.8L621.6,366.8L624,364.1L627.7,361.8L628.5,360.2L622.5,361.3L618.9,361.5L617.3,358.8L615.1,357.6L610,357.3L607.5,356.5L606.4,356.8L604.3,355.8L603,356.5L600.2,358.8L598.6,358.7L595.7,357.5L594.5,358.2L592.6,360.7L590.5,362L586,361.9L585.9,363.3L587.9,365.6L587.4,366.8L588,367.9L590.3,367.9L592.9,369.2L595,372.4L592.3,370.1L588.7,368.9L587.4,368.9L586.1,370.5L589.8,373.4L590.4,375L589.7,376.2L588.1,375.2L585.4,371.7L582,371.2L581.5,372L582.8,374.7L585.9,376.6L585.3,377.3L581.9,376.3L580.8,374.5L580.5,372.2L574.4,369.2L573.6,367.6L574.5,365.7L573,366L570.5,367.7L570.9,370.1L570.1,374.7L570.5,376.2L574.3,380.3L575.7,383.4L578.4,385.8L581.3,389.3L582,391.4L580.6,392.8L579.1,392.3L579.6,390L577,388.8L575,390.3L577.1,394.4L578.5,394.1L576.7,395.9L574.9,396.9L571.9,397.3L574.6,398.8L578.2,399.7L580,400.9L581.7,400.9L583.5,403.3L586.5,403.7L588.3,406.1L592.5,407.3L593.5,409.7L594.6,417.6L593.4,418.3L591.9,416.5L587.3,412.6L586.1,412.2L584.9,413.1L581.7,413.9L579.5,415.6L581.2,417L582.2,420.2L584.4,420.4L586.7,423.1L583.3,424.6L582,425.5L581.1,425L580.9,423.6L576.1,421.2L575.4,422.1L576.1,424.7L577.5,426.6L580,431.5L581.5,435.9L581.1,438.3L583.2,441.8L580.4,440.5L578,437.7L577.1,435.9L574.6,436.2L573,440.3L573.2,442.5L571.4,441.4L571.2,437.9L568.9,434.7L567.9,434.4L566.5,432.1L564.7,432.9L564.6,436.4L564,437.6L561.6,435.4L559.1,431.5L559,429.4L560.5,427.2L560.2,425.8L558.5,423L554.8,420.9L554.2,419L551.9,417.6L551.9,416.4L554.2,414.3L555.5,411.1L557.6,411.6L559.2,411.3L561.4,408.3L563.3,408.4L567.6,410.6L572.2,411.7L576,413.9L577.7,414.2L577.2,412.5L580.5,411.9L581.3,410.7L580.8,410L578.5,409.4L577.6,409.7L574.9,408.2L572.4,407.4L569.9,405.8L569.5,406.8L567.2,407.6L563.4,406.7L561.1,407.6L556.3,408.7L554.1,405.8L553.8,407.9L552.1,408.5L551.1,407.8L549.1,402.9L547.3,400.7L545.9,400.2L545.8,398L547.4,397.7L550.1,398.6L551.2,397.9L550.6,395.9L547.8,395.9L545.8,396.5L542.7,394.1L541.1,392.1L538.7,390.9L537,386.9L534.1,384L534,382.3L531.8,377.9L526.6,375L525.3,373.7L524.2,371.4L525.9,372L525.8,370.2L524.3,366.7L525.8,361.6L525.7,358.5L526,356.1L525.3,352.6L526,350L527.1,348.6L527,345.8L525.5,344.6L523.7,344.4L521.6,343L520.6,341L517.4,337.5L513.8,335.2L514,334L512.2,334.2L507.3,330.6L502.7,327.7L499.5,326.9L495,324.5L492.1,323.7L494.5,323.5L501.4,326.7L498.8,324.6L496,321.8L493.3,320L490.2,316.7L486.2,315.4L483.4,313.9L479.9,314.5L477.9,314.3L477.4,311.7L471.5,307L467.5,302L466.6,300.4L468.8,299.9L471.3,300.2L468.6,298.1L464.9,294L463.8,292.1L464.1,287.1L463.5,285.1L460.6,282.4L459.6,281L456.5,280.1L455.4,283.4L451.7,289.3L450.3,289.2L447.4,284.1L446.3,277.1L449.8,274.5L447.9,271.8L445.8,272.9L442.5,271.6L440.1,274L438.4,274.4L436.5,275.5L433,276.9L432.2,276.7L433,275.3L430.1,277L429.2,280.8L430,281.5L431.2,284.6L432.9,286L432,288.3L430.9,289.1L429.5,288.4L429,290.4L429.5,295.9L430.5,299.7L431.6,301.4L434.2,304.2L437,305.7L442,310.2L444.8,311.7L447.1,315.9L448.5,319.8L449.9,326L450.9,329L453.2,332.5L457.9,337.4L462.3,341.1L466.4,343.4L469.6,343.8L477.3,343.5L480.1,344.3L479.8,346.8L476.5,349.3L476.3,351.4L477.8,352.8L485.3,356.6L493,359.7L495.4,361.3L498.1,363.8L504.9,367.2L506,368.9L510.2,372.4L512.1,375.1L512.5,377.3L510.6,382.5L508.8,382L506.8,380.4L503.7,374.1L498.2,373.5L495.1,372L494.1,370.1L492,369.9L490.5,370.9L488.8,373.3L486.9,376.8L484.9,381.9L484.8,384L485.8,386L489,387.2L491.5,389L493.1,390.8L493.3,395.3L494,397.9L492.9,399.3L490.8,399L488,399.9L486,401.5L485.2,403.1L485.4,407.2L484.9,408.7L481.1,411.6L479.1,414.6L477.8,417.3L472.9,417.3L471.9,415.5L471.8,412.9L472.7,411.3L474.5,410.6L475.7,407.3L475.3,404.8L476.7,403.1L480,402.2L480.2,398.9L478.7,397.3L477.6,391.2L475.2,386.2L474,381.6L473.1,379.4L471.6,378.2L467.4,377.9L462.6,374.6L462.4,373.3L463.2,372.1L462.2,368.8L460.2,366.6L454.3,367.7L456,365.4L453.9,363.8L451.1,363.4L450.3,362.6L447.8,357.7L446.2,355.7L443.7,355.7L439.5,354.4L437.2,355.2L434.1,352L431.1,350.7L425.6,344.1L423.9,341.6L420.4,338.8L418.3,334.9L416.5,333.4L413.8,332.1L411.6,332.6L412.2,329.9L409.3,326L407.6,324.6L406.5,322.1L403.9,321.4L404.4,318.2L403.6,313.8L402,311.1L401.5,304.8L400.9,302.9L399.1,301.5L395,299.6L389.6,295.1L388.3,294.9L385,293.1L382.8,292.6L379.9,293.7L376.1,297.3L372.9,301L371.8,301.7L368,302.7L364.8,303L360.4,304.5L355.7,308.1L353.6,309.1L352.6,311L350.2,312.4L347.6,312.7L344.9,313.6L343.9,313L340.9,312.6L339.2,310.9L335.8,309.5L334.9,307.2L331.7,306.4L331.7,305L329.7,305L327.9,305.7L325.8,305.2L319.9,302.2L318.7,300.3L316.8,300.6L314.8,302.2L307.1,306.1L303.5,310.7L303.2,312.1L303.1,316.7L304.2,319.3L305.1,322.7L303.1,323L302.7,324.6L303.6,326.3L303.4,328.8L299.5,331.5L289.2,335.5L285.5,338.2L278.2,338.7L270.4,339.8L265.3,343.3L266.3,343.9L267.3,345.6L266.8,346.2L263.8,347L262.9,346.8L258.7,351.6L255.1,354.9L253.2,356.2L251.1,358.4L246.3,364.2L245.9,366.1L246.4,372.8L248.2,376.4L250.6,378.1L251,379.4L249.9,380.4L246.8,381.9L241.7,383.7L239.2,385.4L238.4,387.4L236.8,388.1L235.7,390.9L233,394.5L232.7,395.5L233.9,397.3L232.2,397.9L224.9,396.8L219.8,399L216.9,401.3L213.7,406L210.6,408.5L209.4,408.9L207.9,407.1L205.8,406.4L203.7,406.4L200.5,407.4L199,406.6L193.9,405.2L191.2,405.4L189.2,404.4L185.7,403.2L177.7,402L172.4,404.7L168.6,403.9L164.8,404.4L161.7,407.2L160.8,408.9L159.6,408.3L159,409.6L156.5,409.8L154.1,408L152.3,405.8L151.2,405.4L150.1,402.3L149.6,398.4L149.9,397.1L148.4,396L148.4,394.2L151.5,391.8L150.6,391.4L149.2,392.5L148.4,389.9L144,384.1L144.7,382.7L142.7,383.7L139.9,382.7L135.2,382.1L129.5,383.7L128.1,383.2L125.6,381.2L119.3,378.4L117.1,378.7L115.6,378.2L114,378.9L113.2,378.3L117.9,372.1L118.7,369.2L119.8,366.8L120.2,364.2L119.8,362.4L122.1,358.8L122.6,356.7L122.4,353.8L125.2,355.1L123.9,352.9L122.3,352.5L119.5,352.8L117.8,352.4L118.4,350.8L118.4,348.5L120.8,348.5L123,347.1L123.2,345.2L124.4,343.4L121.6,346.1L120.5,347.5L117.1,347.4L115.7,346.3L116.4,344.1L117.6,342.4L118.6,339.8L120.2,337.7L120.4,336L122.6,335L124.6,333.3L128,329L131.9,324.5L131.5,323.1L135.3,316.1L137.3,313.8L139.1,309L139.5,306.7L139.4,304.2L140.4,297.4L140.4,293.9L142.3,292.4L141,291.9L141.8,289.1L145.2,286.8L143.7,286.2L145.5,284.3L144.7,282.9L145.6,279.9L143,280.2L142.8,278.6L144.9,276.7L143.5,275.9L141.9,272.3L143.7,269L146,268.5L148.5,267.4L151,268.5L152.8,268.6L157.1,267.9L157.1,266L157.7,265.4L161.5,264.3L163.5,264.6L165.8,264.1L167,265.2L168.2,265.3L169.3,266.5L170.6,268.8L173,270.2L175.2,270.2L180.7,271.9L184.1,272.3L185.9,272.9L189.1,272.8L191.2,274.6L195.6,276.3L198,277.9L205.3,281.3L208,282.1L212.1,282.1L213.9,281.9L215.3,282.6L217.7,282.4L219.8,284.2L224.4,286.8L227,285.8L230.3,287.3L233.5,289.6L238.1,290.3L240.5,289.8L243.2,289.7L245.6,287.8L249.2,279.9L252.5,270.4L253.8,268.8L255.2,268.5L254.5,267L252.9,268.5L255.5,259.7L256.7,256.5L258.3,253.2L261,256.6L261.5,258L261.6,262.2L262.2,262.4L262.2,256.8L260.9,253.6L257.7,250.2L257.5,248.5L259.7,249.6L259.5,246L260.4,238.9L257.5,237.5L253.1,233.5L252.1,230L250.9,227.4L251,225.3L252.3,223.4L251.8,221.8L250.6,220.6L252.1,219L254.4,219.6L256.4,220.9L253.9,218.5L249.1,218.1L247.4,217.1L247.4,215.7L249,214.4L247.7,213L245,212.7L245.8,211.2L245.2,210.6L243,210.5L241.8,209.9L241,208.3L237.6,207.2L236.9,206.2L232.5,203.6L230.5,202.9L228.5,203.1L227.5,202.6L226.7,199.7L224,197.6L224.8,196.9L228,196.9L228.8,196.3L226.9,194.6L226.3,193.4L230.4,194.1L229.9,193.2L227.4,192L225,191.6L224.9,189.9L225.7,188.4L228.4,187.5L234.4,187.3L236.8,188.1L238.6,188.3L241.9,187.1L244.9,187.2L247.4,188.8L249.2,192.8L250.1,194.3L253.5,192.9L258,193.9L258.6,195.3L260.2,193.4L261,194.9L266.5,195.6L265.4,194.5L264.8,192.4L266.1,185L265.3,182.7L264.2,177.1L264.7,175.6L267.8,176.5L270.6,176.3L271.8,177.1L271.4,180.6L272.1,182.8L274.3,183.1L276.5,184.2L279.4,184.9L283.4,186.8L285.4,186.5L287.4,185.5L290.9,185.3L287.7,183.6L287.6,182.6L289.1,180.1L294.7,178.2L298.5,178L302.6,177L304.9,175.7L307.6,173.1L307.2,172.2L309,164L310.6,161.5L313.7,160.1L320.2,159.7L326.8,157L330.1,155.9L332.6,155.4L334.5,155.6L337.8,157L339.4,156.4L340.5,157.3L341.8,157L339.4,155.5L337.2,155.9L334.6,154.6L333.3,152.7L334.6,152L336.8,152.2L338.4,152.9L341.1,155.5L342.7,155.5L339.9,152.7L341.9,152.7L341.6,151.5L339.8,148.6L341.9,145.4L343.5,144.4L347.3,140.1L348.6,137.8L350.8,131.1L352.2,128.7L353.5,129.5L355.6,128.8L359.3,126.7L360.5,124.7L361.7,123.8L365.8,122.2L367.9,121.9L376.5,122.3L378,124.6L380.5,125.8L379.1,123.8L380,120.5L381.3,118.7L382.3,118.3L386.2,118.5L390.4,119L391.9,122L391.1,123.3L392.6,123.9L393.9,121L395.5,122.9L395.3,125.1L396.1,122.1L395.9,119.9L396.4,117.9L397.6,116.2L400.6,117.2L404.1,117.1L405.3,118.1L408,122.4L408.5,122.4L405.3,117.2L404.3,116.5L401.7,115.6L401,114.1L401.5,109.2L400.1,108L398.6,108.3L398.9,106.3L402.3,105.3L402.5,103.9L401.8,102.8L399.9,98.8L400,95.1L399.4,92.2L400.5,91.9L400.6,88.6L400.3,86.8L395.4,82.8L396.9,75.6L396.3,72.5L397.7,63.6L399,63.5L401.7,64.9L402.9,66.2L403.8,63.8L405.6,61.8L407.6,60.9L408.8,62.8L409.9,56.9L408.5,56.1L407.2,56.5L405.7,58.9L404.4,61.9L402.5,62L401,62.8L399.1,60.8L399.5,59L401.2,56.6L403.5,54.3L405.5,54.5L407,53.9L410.6,54.3L412.1,53.9L413.4,52.8L416.6,48.3L418.3,46.5L421.4,46L424.4,43.9L425.2,43.9L423.8,45.6L423.3,47.2L424,49.5L423.6,53.4L422.6,54.7L420.9,58L420.2,65.3L422.2,67.4L426,67.6L426.8,69.2L425.8,72L424.7,72.9L422.3,73.6L421.2,72L420,73.2L418,79.7L416.2,79.4L415,79.9L416.1,81.6L414.7,82.5L411.1,86.3L411.6,90.7L411.1,91.9L409.5,93.4L408.8,94.9L410.9,95.4L411.7,96.5L411.4,97.2L411.7,99.6L413.2,100.2L414.5,102.4L414.4,104.1L412.5,106.1L415.5,106L416.2,107.6L417.9,107.1L421.8,109.7L425,108.8L425.5,110.7L424.7,112.5L422.4,114.4L423.5,116L425.6,115.9L428.8,117.3L429.5,117L432.4,114.3L433.4,113.8L437,113.5L442.5,108.1L447.4,109.4L448.7,111.9L451.9,114.8L455,114.7L456,117.2L456.3,120.4L458.1,122.1L460.6,122.9L464.3,124.7L464.1,121.2L459.8,120.1L457,120L457.1,117.7L456,116.5L456.1,115.2L460.7,119.1L462.2,119.3L466,117.6L472.4,115.4L479.3,113.3L482.5,112.7L484.6,109.9L486.6,107.7L490.3,106.9L494.4,104.3L500.8,102.6L506.1,102.2L511,105L511.5,106L508.1,103.9L507.4,103.9L509.2,108.3L510.1,109.9L512,111L513.5,111.3L518.3,110.5L520,109.6L522.1,107.4L524,103.4L524.3,100.1L525.7,99.4L528.9,99.4L530.2,98.5L533.6,93.8L535.3,90.5L536.2,86.3L536.2,88.8L535.5,91.5L533.8,94.7L531,98.7L534.3,100L537.6,99.3L537.8,92.8L537.4,91.5L537.7,89.3L535.4,82.5L535.2,78.5L534.5,74L534.4,66.7L534.6,63.1L536.5,60.9L537.4,59.2L538.2,53.2L540.8,48.2L543,47.6L545.9,46.1L549.2,44.8L550.4,47.2L554.7,50.9L555.8,52.1L557.7,56.6L561.6,58.6L564.6,57.6L568,54.2L568.9,52.6L569,51.1L568.1,44.9L567.2,42.3L567.3,39.8L568.4,35.9L568.6,31L566.6,30.7L565.8,32.5L564.5,33.1L560.9,31.5L559.8,28.8L558.5,27.5L557.8,25.9L557.9,24.8L559.3,23.3L557.9,23.5L556.6,20.8L557.3,19.3L556.8,18.6L557.2,17.1L556.9,15.4L559.6,13.6L562.6,13.1L562.2,11.5L563.4,11.4L565.3,9.3L567.3,9.5L570.2,7.9L575.8,7.4L576.5,6.6L576.2,5L579,4.8L585.9,5.7L587.5,5.5L589.9,6.9L591.2,7.2L594.8,6.8L600.4,6.8L601.3,5.6L601.7,3.9L600.8,0.6L601.3,0L602.5,0L602.5,0L602.8,0.3L604.1,0.8L604.8,0L1000,0L1000,249.2L998.4,248.2L993.2,247.1L989.7,245.6L985.3,240.5L982.2,237.3L979.1,237.8L975.3,240.6L973.6,241L972.1,244.1L971.8,245.8L972,249.4L973.3,250L974.9,255.6L976.3,257.7L970.7,253.6L967.4,249.9L966.4,248.3L964.7,244.7L964.4,238.3L963.7,236L961.7,232.7L959.2,232.5L957.4,233.8L955.7,233L953.1,234.5L951.2,234.1L948.1,231.6L946.6,231.1L942.5,232.4L940.4,227.1L937.3,225.1L932.6,220.8L929.7,217.3L927.4,216.8L922.6,217.5L921.1,216.5L920.5,213.2L921.5,211.9L927,209.7L930,210.4L931.8,210.3L934,208.6L936.1,207.9L934.2,207.3L932.6,207.6L930.9,206.5L928.2,205.5L926.8,203.9L926.8,202.7L928.3,199.3L928.1,197.2L928.7,194.4L930.3,194L932.2,192.1L936.1,190.7L941.8,188.1L947,187.5L949,186.9L950.3,185.8L948.4,185.1L944.8,184.9L943.5,183.9L943.3,179.8L943.7,175.8L943.2,171.5L939.9,165.7L940.1,163.2L937.6,160.5L935,159.6L932.2,160.7L929.7,161.1L928.7,163.5L927.4,165.2L926.2,165.7L924.8,165L921.5,165.7L919.8,164.7L913.6,165.4L911.1,167.8L908.9,170.7L908.9,170.7L908.2,172.2L906.3,173L905.5,175L902.9,179.2L900.5,181.4L896,184.2L896.8,186L895.8,185.9L895.2,187.1L896.3,188.6L894.8,189.3L894.9,191.1L892.3,193.9L890.8,194.7L892.7,197.3L892.2,198.1L890.6,197.8L889.4,198.2L887.7,202L883.2,205.9L881.5,206L881.3,208.1L878.6,207.2L879.9,208.3L880.3,211L879.6,211.9L880.1,214.2L879.7,219.7L879.1,222.2L879.3,223.9L877.9,223.2L877.9,225.1L876.2,228.2L876.3,230L877.6,232.3L881.4,232.5L885,234.2L887.8,237.1L890,240.5L891.8,244.3L891.4,238.9L892.1,237.7L892.7,244.8L893.3,247.1L894.6,249.9L895.1,253.3L898.1,254.8L899.6,256.1L900.7,258.3L902.3,259L907.3,262.3L910.3,264.6L913.7,267.8L918.4,269.4L921.5,271.3L927.3,275.6L930.6,279.8L937,283.4L940.7,284.6L943.6,283.6L946.6,283.9L948.8,284.8L950.5,286.8L947.3,287.2L944.4,288.5L941.5,290.9L940.4,292.5L940.1,294.7L940.9,299.2L941.3,303.7L943.5,308L942.6,309.6L943.1,313.6L942.5,315.2L941.8,313.8L940.2,313.5L939.9,314.7L940.1,319.8L942.8,326.3L945.1,331.2L947.6,335.2L950.7,338.5L952.4,339.2L957.2,339.4L960.8,338.3L966.8,337.5L968.4,338.1L971.4,340.8L975,342L981.8,343.3L984.9,343.4L994.6,342L1000,339.7L1000,462.7ZM558.3,0L558,0.1L556.8,0L558.3,0ZM555.3,0L552.8,2.9L550.7,3.4L552.7,0.3L552.7,0L555.3,0ZM508.8,0L509.2,0.2L510.7,2.9L511.3,5.1L511.1,6.5L508.7,8.6L507.3,10.4L503.7,13.3L503.2,13.1L501.2,14.5L501.4,15.1L502.9,15.4L504.3,14.3L505.5,14.3L506.7,13.5L507.8,15.1L505.8,15.8L505.4,18L504.5,19.4L502.6,20.3L499.9,22.5L496.2,24.4L495.1,26L492.6,27.3L491.3,28.4L487.8,28.5L484.6,28.2L483.5,28.7L485.3,29.4L486.2,29.2L489.4,29.8L490.8,31.6L488,32.7L489.2,37L488.4,38.1L488.4,42.8L487.4,42.9L486.9,44.8L487.2,48.2L487.9,50.9L487.7,52.3L486,55.5L486.6,59.3L484.6,66.2L482.5,70.3L480.8,75.6L478.9,77.4L476.8,76.2L473.6,76.9L470.6,76.4L467.7,76.5L467,77L467.4,79L465.3,78.6L463.6,80L461.4,82.7L461.3,84.7L462.6,88.6L460.8,91.1L456.8,90.3L451.4,91.7L446.7,90.2L447.4,88.9L448,84.9L447.7,82.7L446.6,81.2L444.2,76.1L443.5,73.1L445.5,74.3L446.6,73.8L445.2,70.3L447.4,70.2L448.1,69L447.8,67L446.1,66.1L444.7,62.9L443.2,61.2L440.7,54.9L439.9,50.5L438.9,50.9L438.3,45.9L436.8,45.1L436.8,40.1L435.3,39.5L434.4,37.1L434.5,32.8L433.5,31.9L432.6,32.1L433,30L432.8,26L432.9,22.3L432.4,19.9L433,18.2L434,18.1L434.9,19.1L434.8,17.8L429.5,15.9L427.9,11.7L428.1,7.5L427.9,4.3L427.2,5.6L427.4,7.8L425.6,9L426,11.8L425.6,13.7L422.7,18.8L421.7,18.4L420.4,19.5L419.2,19.5L418.9,18.2L417.4,16.2L416.6,16.3L417.8,18.4L416.9,19.6L413.7,21.1L414.4,22.1L412.7,23.3L412,24.5L409.3,26.3L404.7,31.2L402.3,32.5L400.7,33.9L399.4,33.7L397.6,34.8L393.3,35.5L390.5,34.7L388.5,34.9L387.6,33.9L387.9,32.5L386.8,32.2L385.8,33.8L384.2,32.5L385.8,30.7L385.5,29.9L382.8,29.5L379.6,27L379,25.8L376.5,23.7L375.5,21.6L375.1,19.5L376.1,14.7L376.7,14L379.1,15.4L381.3,17.4L382.6,16.1L384.3,15.2L383.9,14.8L381.5,15.8L379.6,13.4L380.7,11.1L380.9,8.9L384.9,5.3L384.7,4.7L381.8,6.7L379.9,7.7L377,8.5L375.8,10.1L374.6,10.7L372.7,10.5L372.5,9.2L373.6,4.9L375.3,1.3L376.3,1.2L377.2,0.2L380,1.6L381.1,0.2L382.3,0.2L382.7,0L508.8,0ZM375.1,0L374.8,0.3L374.1,1.2L373.4,0.6L373.5,0L375.1,0ZM1000,287L998.2,286.5L996.1,286.7L994.5,287.8L994.3,289L992.6,286.4L992.8,282.7L995.3,283.1L998,281.7L997.3,280.8L995.4,280.4L994.6,279.1L993.8,276.2L992.4,275.8L986.8,277.7L987,279.5L988.9,281.1L986.1,279.5L983.9,277.6L981.9,275.1L980.5,272.1L979.9,266.6L978.6,260.1L981.1,262L982.7,262.6L985.4,262.3L987.4,260.4L988.7,260.1L991.8,261.8L993.3,261.5L996.9,258.5L999.4,257.9L997.6,255.9L998,254.9L1000,254.7L1000,287ZM451.3,452.2L449.3,451.5L450.6,451.2ZM448.7,365.6L448.7,365.6L448.7,365.6ZM418.2,437.2L416.6,436.7L416.8,435.5L417.9,436ZM371.3,120.3L371.3,120.3L371.3,120.3ZM366.6,120.7L364.3,120.8L363.5,120.2ZM357,122.4L354.7,123.5L356.1,122.2ZM359.6,121.2L358.1,120.9L360.8,120.5L362.6,120.6ZM486.8,324L489.3,324.5L492.8,324.6L494.1,325.5L491.2,325.3L489.5,325.9L488,325.6ZM494.2,321.6L493.2,321.8L487.2,321.7L485.5,321.3L483.1,320L486.9,320L487.5,320.7ZM488.6,318.9L484.7,318.6L483.8,318.1L484.1,316.8L489.3,317.5L490,318.1ZM256.2,177.3L255.5,178.4L254.5,177.4ZM261,183.4L260.9,184.3L258.2,183.8L258.8,182.2ZM943.5,187.1L941.6,186.7L942.5,185.4ZM886.2,208.3L884.9,207.2L884.7,205.6ZM831.4,613.9L827.7,611.8L824.3,611.3L824,609.6L825.1,610.7L828.1,611.3L831.6,613ZM824.9,609L823.9,608.7L824,606.4ZM505.8,20.9L505.6,19.8L506.5,19.5ZM507.5,12.2L507.7,10.7L508.5,11.2ZM991.3,483L990,483.7L987.2,481L987.6,477.2L991.4,479.8L991.9,481.4ZM683.5,248.3L685.4,248.9L679.5,248.8L677.7,248.3L676.6,246.3L678.6,247.9ZM551.6,23L550.8,24L550,23.2L549.1,25.5L547.9,26L546.4,22.7L545.3,22.1L543.8,22.1L542.7,21.3L546.8,20.4L547.9,18.3L549.1,18.3L549.4,19.5L551.2,19.8L552.5,22.8ZM556.3,28.1L555.4,28.4L553.3,27.1L554.2,25.8L556,26.2ZM653.7,444.7L652.3,445.2L651.7,444.4L652.1,442.2L651.2,440.4L653.8,436.9L658.3,434.7L658.4,435.9L657.5,439L656.6,440.6L657,441.7L655.3,442.3ZM644.7,454.4L644.3,455.5L642.9,452.1L644.7,447.8L644.1,451.4L645.6,454ZM652.5,433.2L651.3,432.3L652.4,431.6ZM639.3,427.2L637.8,427.6L637.9,426.1L637.1,425.1L639.5,426.4ZM638.7,431.6L640.1,429.3L643,427.8L644.3,428.3L641.6,430.3ZM617.6,429.3L616.4,430.1L614.7,427.7L616.9,425.1L617.9,425.8ZM613.5,427.8L612.5,429.4L611,428.7L611.5,427.3L613.3,426.6ZM617.7,440L616.1,440.8L616.4,438.6ZM615.7,434.9L613.8,433.6L614.2,432.9L616,434.1ZM634.7,411.9L637.9,412.2L638.2,413.3L635.3,414.9L633.4,414L631.3,413.8L632,412.7ZM623.7,418.3L623.1,417.6L624.3,416.2L628.1,415.1L626.2,417.3ZM622.6,432.1L622.1,431.5L624.4,429.2L624.2,430.3ZM631.8,435L630.1,436.5L629,435.1L630.3,434.1ZM599.2,419.7L598.2,420.6L598.5,417.9L599.7,418.3ZM600.7,423.9L599.9,424.5L599.6,422.5L600.4,421.4L601.3,422.6ZM603.1,434.4L603.1,435.9L600.2,436.7L600.4,435L601.5,435.5ZM607.9,420.5L608,422.4L607.3,422.1ZM608.2,415.5L607.8,416.8L603.9,413.3L603.6,412.1L604.9,411.5L605.9,412.8L607.4,412.9ZM612.3,418.1L611.8,419.3L610.9,419.2L608.4,417L611.7,417.6ZM605.5,431.3L605.3,429.4L606.1,430.7ZM623.3,405.5L622,406.7L620.1,404.9L621.6,403.2L619.2,400.5L619.1,399.3L621.4,398.6L623.6,399.5L624,403.9ZM625.7,384.6L625.6,385.7L627.7,387.3L628.8,389.8L627.3,389.2L628.3,390.6L626.1,391.2L622.7,390.6L621.9,389.6L624,387.2L622.6,387.4L621.3,389.4L618.9,388.9L617.9,387.8L618.7,386.1L620.3,386L622.2,385L622.2,384.2L624.7,383.7ZM588.6,392L587,392.5L585.8,390.5ZM590.1,391.1L590,389.8L591.1,389ZM601.9,396.6L599.9,397.1L600.2,396.3L598.7,395.4L598.9,393.6ZM613.4,365.5L611.9,366.1L610,364.8L611.6,364ZM610.7,374L609.9,377.3L608.5,377.2L608.2,375.9L607.4,377.2L605.6,376.9L605.4,374.2L607.8,373.9L608.6,374.7L610.8,373ZM600.4,363.2L598.6,364L596.7,363L598,360.1L599.3,360.2L600.4,361.6ZM617.9,370.4L614.7,371.3L613.7,370.9L614.6,369.7L617,368.7ZM0,495.6L0.1,495.6L1.8,494.3L0.1,498.4L0,498.4L0,495.6ZM404.4,473.6L401.9,474.7L404.1,472.3ZM398.2,492.3L396.6,492.9L394.6,491.8L395.2,489L397.9,489.2L399.5,491.3ZM254.9,86L252.1,87.8L250.3,87.1L252,84.5L253.1,84L254.7,82.2L256.2,82.3L256.1,84.6ZM243.3,35.4L242.7,35.1L244.1,34.1L245,34.3ZM253.3,60.7L251.1,59.5L251.2,56.8L252.3,55.3L253.8,56.5L253.9,58.4ZM250.7,42.2L246.3,42.2L244.9,41.7L245.2,40.9L246.5,40.9L247.6,38.5L246.2,36.9L246.7,35.8L248.8,35.7L249.9,38.2L251.5,39.5ZM245,48.9L244.7,53L244,54.1L241.5,54.5L242.2,53.4L242,51.3L240,52L241.2,49.9L242.7,49.8ZM246,51.5L245.2,50.6L245.8,49.3L247.4,48.7L247.5,47.3L250.1,46.6L248.8,48.5ZM288.5,2.5L287.3,2.5L286.6,0.3L288,0.1ZM253.4,102.6L254.9,103.2L254.3,103.9L250.6,105.5L249.6,104.5L249.1,102.7L249.6,100.4L250.9,100L252.5,100.5ZM290.6,4L289.9,2.2L291.3,2.5ZM292.8,0L293.2,0.3L291.9,1.3L290.8,0.1L289,0.1L289,0L292.8,0ZM256.4,3.2L254.3,6.1L251.5,7.3L252.9,8.1L252.5,9L249.3,10.4L247.8,11.7L245.7,12.7L244.8,11.1L247.7,9.7L246.1,7.6L247,6.9L246.2,5.8L246.7,4.2L247.7,3.5L248.7,4.7L250.4,4.9L250.2,3.1L250.9,2.5L253.1,1.9L256.8,0.5ZM248.6,29.3L247.9,29.3L247.3,27.8L248.6,27.5ZM252.7,19.5L252,21.2L251.8,23.1L254.1,24.7L255.9,25.1L256.1,26L252.3,28.6L251.7,28.3L252.2,25.5L250.9,25.5L249.3,24.7L248.8,22L246.6,20.7L246.1,19L247,18.1L247.9,18.5L248.2,17.1L250.8,17L251.3,15.9L252.4,16.5L252.9,17.9ZM242.9,13.2L243.7,14.6L242.3,16.1L241,15.7L239.4,13.9L239.7,13.3L242.1,13.5ZM239.5,23.7L238.2,23.1L238.3,21.1L239.3,18.3L240.7,18.9ZM193.9,74.3L192.9,73.1L190.8,72.1L191.9,71.7L193.9,72.5ZM237,26L236,26L236.9,24.9ZM513.9,42.4L513.7,43.7L512.6,42.7L513.6,41.3L515.6,41.6ZM486.5,74.3L485.5,75.2L485.1,73.9L485.3,69L487.6,63L488.7,62.5L491.8,54L492.8,54.4L492.1,55.2L492.1,56.6L490.3,60.9L489.8,63.7L489.2,64.4ZM470.5,98.5L468.3,98.2L466.1,96.8L466.6,94.3L467.1,93.1L471.1,96.2ZM455,110.3L454.9,112.2L453.7,111.1L452.4,111L451,112.7L449.1,111.1L448.8,109.8L449.2,107L449.9,105.2L451.1,104.1L452,104.1L452.7,105.7L454.3,106.5L454.6,107.3L453.6,108.7ZM442.6,98.6L440.5,98.5L438.6,99.8L437.9,99.3L438.4,98.2L440.1,97L441.3,97.2ZM444.5,86.6L443.2,87.3L442.9,86.1L443.9,84.9ZM429.5,99.3L431.4,100.6L433.6,101.1L433.7,103.6L430.2,104.3L425.8,101.3L426.2,98.1L428.5,98ZM419.8,99.4L418.3,99.1L417,97.4L417.6,97.3ZM415.2,98.3L414,98.5L412.4,97.8L412.3,94.8L414.7,96.4ZM422.4,101.5L421.9,101.5L421.3,99.5L424.2,95.8L425.1,93.8L424.9,95.7ZM422.5,81.6L421.6,81.6L422.1,77.6L423.2,79.9ZM428.1,108.2L426.4,108.2L425.1,107.1L426,105.9L427.6,106.6ZM429.2,53.7L428.7,54.1L427.3,53.3L428,52.5L430.5,52.4ZM395.8,98.5L395.9,96.2L397.4,93.5L396.8,96.5L399.5,96.9L399.2,97.4L396.4,97.4ZM258.4,246.2L257.7,247.7L256.3,244.5L256.4,243L257.5,244.1ZM278,159L276.1,160.4L274.8,160.3L272.6,158.3L272.7,157.7L275.4,156.9L277.2,158ZM353.9,126.5L352.6,127.7L351.8,126.9L352.3,125.9L354.2,124.4ZM402.1,323.3L402.3,325.9L401.2,325L398.4,325.1L398.5,323.8L401.6,323.9ZM369.6,390.7L368.6,392.5L367.8,391.1L368.1,389.7ZM370.4,354.2L369.2,354.9L370.2,353.1L371.3,353.1ZM312,369.4L311.7,369.6L307.7,366.8L306.1,366L306.4,364.5L309.3,364.7L311.6,365.8L312.6,368.4ZM270.5,384.6L267.8,384.2L268.5,382.5ZM269.2,379.8L268.5,380.8L266,379.5L268.3,376.6L271.5,376.4L272.1,378.1ZM455,455.5L453.1,456L451.8,455.1L451.9,453.1L453.3,453.5ZM468,304.1L466.6,303.5L465.8,302.3ZM462.8,287L461.2,287.4L460.3,286L458.9,285.8L458,284.6L459.8,282.3ZM463,291.1L463.3,291.9L461,290.8L461.2,289.4L462,289.4ZM467.5,299L467.2,299.5L464,296.1L461.8,292.2L463.8,293.8L468.2,298.7ZM467.4,306.7L466.7,306.9L463.5,302.8L464.3,303ZM469.8,305.7L469.9,306.8L468.5,305ZM458.5,292.8L457.6,292.6L456.1,287.5L456.7,286L456.1,283.7L457,283.3L457.4,285.9L458.3,287L458.1,288.9ZM499.8,328.2L501.6,329.4L496.2,327.8L497.4,327.6ZM543.8,408.1L544.1,410.3L545.1,410.6L546.6,412.5L546.2,413.8L543.9,413L542.7,413.3L541.6,411L540.2,412L541.3,408.8L542.5,409.2L543,406.5ZM548.3,418.6L549.9,420.4L548.7,420L547.4,421.3L545.7,419.9L544.3,417.9L545.3,416.5L546.4,417.9ZM544.7,403.9L542.8,404.5L542.8,403.1L543.8,400.1L545.1,400.4ZM546,409.1L545.3,409.3L543.9,406.3L545.1,406.8ZM535.4,389.1L535.8,390.1L532.7,388.6L531.5,386.4L529.1,383.9L529.9,382.5L531.8,382.1L533.2,383.4L532,384.8L532.8,385.7L533.7,388.4ZM586.9,414.2L585,414.2L585.9,413ZM581.9,446.7L581.8,447.5L580.2,447.1L579.5,444.4L580.1,443.2L582.5,445.6ZM339.6,149.9L340.8,151.8L339.3,152L338,150.5L336.9,150.7L336.7,149.7ZM398.8,100.3L397.2,100.5L396.9,99.6L398,99.2ZM375.9,119.5L375.9,119.5L375.9,119.5ZM526.9,0L527.2,0.4L527.2,0.4L526.3,1L525.4,0.1L525.9,0L526.9,0ZM614.7,421.2L613.3,421.4L613.8,419.6L615.5,420.2ZM602.3,427.8L600.9,427.8L601,426.7L602.3,426.5Z","grat":"M194.6,655L270.2,265.7L321.7,0M0,234L20.7,187.3L103.7,0M10.8,655L45.8,543.6L143.2,233.5L216.6,0M370.5,655L374.3,607.4L399.9,283.3L422.3,0M543.3,655L541.8,611.2L530.8,286.3L521.1,0M717.4,655L708.7,596.1L661.2,274.5L620.7,0M897.5,655L872.9,562.3L789.5,248.1L723.7,0M1000,427.8L914,207.4L833,0M1000,90.2L952.5,0M0,478.3L21.3,486L59.9,498.8L98.8,510.4L138,520.9L177.5,530.3L217.2,538.6L257.1,545.8L297.3,551.8L337.6,556.7L378,560.5L418.5,563.1L459.1,564.6L499.7,565L540.2,564.2L580.8,562.2L621.3,559.1L661.6,554.9L701.9,549.5L741.9,543L781.8,535.4L821.4,526.7L860.8,516.8L899.9,505.9L938.7,493.8L977.1,480.7L1000,472.1M0,278.9L15.8,285.6L48.7,298.6L81.9,310.6L115.5,321.7L149.4,331.8L183.5,341L217.9,349.2L252.6,356.4L287.4,362.6L322.3,367.9L357.4,372.2L392.6,375.5L427.9,377.7L463.2,379L498.6,379.3L534,378.6L569.3,377L604.5,374.3L639.7,370.6L674.7,365.9L709.7,360.3L744.4,353.6L778.9,346L813.2,337.4L847.3,327.9L881,317.4L914.5,305.9L947.6,293.5L980.3,280.2L1000,271.5M0,74L4.1,76.2L31.1,89.5L58.5,102.1L86.2,114L114.2,125L142.5,135.2L171.1,144.7L200,153.3L229.1,161.1L258.4,168.1L287.9,174.2L317.6,179.6L347.4,184L377.3,187.7L407.3,190.5L437.3,192.4L467.4,193.5L497.6,193.8L527.7,193.2L557.8,191.8L587.8,189.5L617.8,186.3L647.6,182.4L677.4,177.5L707,171.9L736.4,165.4L765.6,158.1L794.6,149.9L823.4,141L851.9,131.2L880.1,120.7L908,109.3L935.6,97.2L962.8,84.3L989.7,70.6L1000,65M434.5,0L447.1,0.8L471.8,1.7L496.5,1.9L521.2,1.4L545.9,0.3L549.3,0","regions":{"urbs_latium":{"d":"M421.9,334.9L435.5,335.6L440.5,346.9L436,356L426.7,348.1L422.8,342.3Z","c":[431,344]},"ager_romanus":{"d":"M407.8,321L431.3,311.3L445.8,317.5L453.2,338.1L463.8,353.2L462.1,367.9L452.3,367.7L429.2,351.9L412.3,334.3Z","c":[437,338]},"italia":{"d":"M353.4,297.4L361.4,262.8L389.4,254.5L434.2,253.9L451.6,267.7L445.7,286L477.9,333.1L519.7,373.5L514.3,388.4L485.7,419.1L475.5,418L471.9,411.5L472.8,405.1L466.1,379.1L415.5,349.3L393.3,299.5L364.5,306.1Z","c":[438,324]},"annonaria":{"d":"M353.4,297.4L361.4,262.8L389.4,254.5L434.2,253.9L451.6,267.7L445.7,286L430.5,300.2L435.6,306L411.6,304.6L398.5,301.8L371.8,301.2L364.7,304.2Z","c":[402,279]},"sicilia":{"d":"M419.2,406.9L474.2,405.1L470.7,443.9L421,427.3Z","c":[449,421]},"narbonensis":{"d":"M277.1,300.9L282,288.6L296.8,289.3L310.3,280.2L331.7,260.9L349.7,252.1L363.5,255.6L362.5,276L358.9,296.1L366.1,304.4L342.3,322.1L304,320.4L288.5,314.1Z","c":[328,292]},"aquitania":{"d":"M239.1,291.4L254.6,237.9L246.2,217L265.9,221.3L290.4,227.9L311.9,237.3L322.5,252.1L316.6,273.7L310.3,280.2L296.8,289.3L282,288.6L277.1,300.9L262.4,305.6L243.2,298Z","c":[278,262]},"lugdunensis":{"d":"M220.3,185.9L221.2,182.3L260.3,187.7L287.2,177.9L305.7,177.5L309.4,191.5L320.6,199L331.1,212L338.8,228.1L338.5,248.7L331.7,260.9L322.5,252.1L311.9,237.3L290.4,227.9L265.9,221.3L246.2,217L222.5,207.6Z","c":[286,209]},"belgica":{"d":"M305.7,177.5L309.8,161.1L321.2,157.3L334.3,157.5L342.9,164.5L352.2,175.2L366.9,182.8L370,198.2L378.1,214.1L373.7,232.4L362.4,253.6L349.7,252.1L338.5,248.7L338.8,228.1L331.1,212L320.6,199L309.4,191.5Z","c":[344,202]},"germania_inf":{"d":"M334.3,157.5L332.9,151.5L347.1,134.6L356,120.5L367.6,137.3L369.5,150.8L373.8,164.6L375.9,178.1L366.9,182.8L352.2,175.2L342.9,164.5Z","c":[356,154]},"hispania_citerior":{"d":"M126.9,304L144,253.1L245.9,285.3L262.4,305.6L288.5,314.1L305.4,320.6L306.9,337.7L260.5,352.3L244.1,377.3L232.6,397.6L211.5,412.1L206.8,392.1L196.8,370.8L181.8,359.6L195.4,340.1L179,330.3L164.3,314.9Z","c":[214,322]},"lusitania":{"d":"M126.9,304L164.3,314.9L179,330.3L195.4,340.1L181.8,359.6L169.3,367.8L137.2,380.2L132.4,386.5L112,382.4L110,349Z","c":[145,346]},"baetica":{"d":"M137.2,380.2L169.3,367.8L181.8,359.6L196.8,370.8L206.8,392.1L211.5,412.1L156.2,412.2L132.4,386.5Z","c":[175,390]},"vascones":{"d":"M227.9,286.1L246.3,290.1L245.7,306L234.8,311.3L225.8,301.7Z","c":[236,298]},"caesaraug":{"d":"M228,304.1L268.4,310.5L268,334.9L243.7,343.3L224.7,331.7Z","c":[247,323]},"britannia":{"d":"M218.1,160.2L229.7,130.2L246.4,97.3L267.3,73L290.6,74.3L319.4,126.4L310.1,159.2L290.1,163.2L254.2,159.4Z","c":[273,124]},"thracia":{"d":"M580.6,357.7L576.2,333.9L593.1,323.4L626.9,320L640.5,320.2L654.5,342.7L659.6,349.4L621,368.9L596.2,360.2Z","c":[616,343]},"macedonia":{"d":"M524.6,345.7L539.5,339.6L570.9,336.1L580.6,357.7L596.2,360.2L587.8,377.5L571.5,389.8L548.5,387.3L523.9,371.6Z","c":[557,363]},"pannonia":{"d":"M452.9,267.7L458.8,240L479.1,229.3L497.8,231.2L516.6,236.5L517.3,268.1L522.9,282.8L504.6,286.9L481.1,283.2L465.5,279.2Z","c":[488,258]},"bithynia":{"d":"M656.1,344.3L663.6,337.7L684.1,334.6L697.1,328.7L703.7,342.6L699,356.5L682,366.7L664.4,363.7Z","c":[681,349]},"paphlagonia":{"d":"M697.1,328.7L740.6,314.8L742.3,329.5L736.7,343.9L717.7,349.4L703.7,342.6Z","c":[722,333]},"cappadocia":{"d":"M730.4,394L729.1,364.2L750.5,348.6L777.6,340.6L805.4,335.6L812.9,364.2L788.2,385.6L753.3,397Z","c":[770,367]},"cietae":{"d":"M716.8,426.5L717.5,413.3L729.9,407.3L746.9,409.7L751.2,416.3L741,425.9L729.5,429.9Z","c":[732,418]},"asia_aegean":{"d":"M613.8,443.9L613.9,382.7L627.8,379.4L641.4,385.3L657.6,398.1L661.9,419.9L651.8,434.3L626.2,447.4Z","c":[634,413]},"syria":{"d":"M764.2,406.1L776,397.8L797.1,391L808.3,399.7L817,422.3L818.4,446.8L806.5,463.1L793.4,475.6L783.1,472.2L771.3,476.6L772.4,451.7L771.8,427.2Z","c":[792,433]},"levant_tetrarchic":{"d":"M776,472.7L789.4,465.1L801.8,473.7L802.4,487L787.6,485.5L780.1,484.3ZM779.5,423.6L779.6,410.3L786.5,410.6L787.7,422.7Z","c":[790,477]},"judaea":{"d":"M764.4,514.1L766.2,490.9L772,487.8L781.2,489.7L783.6,500.7L784.3,515.8L781.1,524.1L772.1,520.2Z","c":[775,505]},"herod_kingdom":{"d":"M764.7,515.9L768.6,479L778.5,473.2L790.3,468.7L799.6,481.9L789.7,495.5L789.4,509L785.8,523.1L774.1,521.7Z","c":[780,496]},"arabia":{"d":"M779.7,486.2L789.2,478.5L805.7,480.5L815,499.4L807.7,539.5L784.1,546.4L780.2,535.7L783.1,510.3Z","c":[796,511]},"aegyptus":{"d":"M763,655L758.3,645.9L744.2,625L725.4,605L715.9,587.4L716.6,570.1L709.5,567.4L707.5,554.4L710.9,544.4L697,538.9L689,527.8L689,527.8L738.9,517L740.3,543.3L726.5,549.5L727.7,566.4L724.4,587.9L733.5,601.8L750,618.3L768.6,653.8L766.5,655L763,655Z","c":[725,564]},"cyrenaica":{"d":"M536.8,558.6L538.8,521.2L577.3,506.3L618.2,525.6L616.4,540.8L571.1,534.7L552.8,554.3Z","c":[572,530]},"africa":{"d":"M355.7,429.6L360.5,456.1L354,476L383.3,493.5L405.8,506.3L421.2,510.9L460.1,519.8L464.5,534.8L428.1,529.9L389.4,516.4L367.2,499.6L346.5,473.3L344.2,452.5L353,427.4Z","c":[396,499]},"imperium":{"d":"M758,655L743.3,619.4L720.3,594.3L711.3,557.6L688.5,536.3L619.1,534.9L586.4,524.4L539.6,545.4L531.9,556.9L475.5,546.2L428.3,526.2L405.2,515.6L382.4,504.6L353.2,483.3L347.5,464.1L325.6,455.9L282.1,440.4L234.9,447.1L203.2,450.1L149.8,443.1L131.5,451.7L126.5,440.7L146.6,413.5L93.4,392.2L93.4,392.2L137.7,251.2L222.2,188.3L269.4,174.3L321.2,157.3L340.4,148.9L367.6,137.3L375.9,178.1L389.1,190.8L389,217.1L404.8,222.2L442.1,220.8L485.3,227.5L497.8,231.2L516.6,236.5L519.9,268L550.8,292.8L567.1,299.3L598.4,306.2L637.6,296.4L644.9,280.5L656.8,271.4L671.9,301L657,340.5L684.1,334.6L735.8,312L779.3,317.4L827.1,308.7L836.2,340.7L813.3,366L833.1,383.7L855.9,383.1L851.6,422.8L819.3,450.4L810.7,481.2L811.4,519.4L801.7,550.4L784.1,546.4L767.7,547.8L755.7,573L768.4,595.7L760.1,616.5L768.6,653.8L761.6,655L758,655ZM217.4,158.1L229.7,130.2L246.4,97.3L267.3,73L290.6,74.3L319.9,130.3L310.1,159.2L290.1,163.2Z","c":[471,377]},"tres_galliae":{"d":"M239.1,291.4L254.6,237.9L246.2,217L265.9,221.3L290.4,227.9L311.9,237.3L322.5,252.1L316.6,273.7L310.3,280.2L296.8,289.3L282,288.6L277.1,300.9L262.4,305.6L243.2,298ZM220.3,185.9L221.2,182.3L260.3,187.7L287.2,177.9L305.7,177.5L309.4,191.5L320.6,199L331.1,212L338.8,228.1L338.5,248.7L331.7,260.9L322.5,252.1L311.9,237.3L290.4,227.9L265.9,221.3L246.2,217L222.5,207.6ZM305.7,177.5L309.8,161.1L321.2,157.3L334.3,157.5L342.9,164.5L352.2,175.2L366.9,182.8L370,198.2L378.1,214.1L373.7,232.4L362.4,253.6L349.7,252.1L338.5,248.7L338.8,228.1L331.1,212L320.6,199L309.4,191.5Z","c":[286,209]},"galliae":{"d":"M239.1,291.4L254.6,237.9L246.2,217L265.9,221.3L290.4,227.9L311.9,237.3L322.5,252.1L316.6,273.7L310.3,280.2L296.8,289.3L282,288.6L277.1,300.9L262.4,305.6L243.2,298ZM220.3,185.9L221.2,182.3L260.3,187.7L287.2,177.9L305.7,177.5L309.4,191.5L320.6,199L331.1,212L338.8,228.1L338.5,248.7L331.7,260.9L322.5,252.1L311.9,237.3L290.4,227.9L265.9,221.3L246.2,217L222.5,207.6ZM305.7,177.5L309.8,161.1L321.2,157.3L334.3,157.5L342.9,164.5L352.2,175.2L366.9,182.8L370,198.2L378.1,214.1L373.7,232.4L362.4,253.6L349.7,252.1L338.5,248.7L338.8,228.1L331.1,212L320.6,199L309.4,191.5ZM277.1,300.9L282,288.6L296.8,289.3L310.3,280.2L331.7,260.9L349.7,252.1L363.5,255.6L362.5,276L358.9,296.1L366.1,304.4L342.3,322.1L304,320.4L288.5,314.1ZM334.3,157.5L332.9,151.5L347.1,134.6L356,120.5L367.6,137.3L369.5,150.8L373.8,164.6L375.9,178.1L366.9,182.8L352.2,175.2L342.9,164.5Z","c":[286,209]},"hispaniae":{"d":"M126.9,304L144,253.1L245.9,285.3L262.4,305.6L288.5,314.1L305.4,320.6L306.9,337.7L260.5,352.3L244.1,377.3L232.6,397.6L211.5,412.1L206.8,392.1L196.8,370.8L181.8,359.6L195.4,340.1L179,330.3L164.3,314.9ZM126.9,304L164.3,314.9L179,330.3L195.4,340.1L181.8,359.6L169.3,367.8L137.2,380.2L132.4,386.5L112,382.4L110,349ZM137.2,380.2L169.3,367.8L181.8,359.6L196.8,370.8L206.8,392.1L211.5,412.1L156.2,412.2L132.4,386.5Z","c":[214,322]},"rome":{"d":"M424.8,342.7L424.9,341.9L425.1,341.1L425.5,340.4L426,339.8L426.6,339.2L427.3,338.8L428,338.5L428.8,338.3L429.6,338.3L430.4,338.4L431.2,338.6L431.9,339L432.5,339.5L433.1,340.1L433.5,340.8L433.8,341.5L434,342.3L434,343.1L433.9,343.9L433.7,344.7L433.3,345.4L432.8,346L432.2,346.6L431.5,347L430.8,347.3L430,347.5L429.2,347.5L428.4,347.4L427.6,347.1L426.9,346.8L426.3,346.3L425.7,345.7L425.3,345L425,344.3L424.8,343.5Z","c":[429,343]},"apamea":{"d":"M774,434L773.8,432.5L773.8,431.1L774.1,429.7L774.7,428.3L775.5,427.1L776.4,426L777.6,425.1L778.9,424.4L780.2,424L781.7,423.8L783.1,423.8L784.6,424.1L785.9,424.7L787.1,425.5L788.2,426.4L789.1,427.6L789.8,428.9L790.2,430.2L790.4,431.7L790.4,433.1L790.1,434.6L789.5,435.9L788.8,437.1L787.8,438.2L786.7,439.1L785.4,439.8L784,440.2L782.6,440.4L781.1,440.4L779.7,440.1L778.3,439.5L777.1,438.8L776,437.8L775.1,436.7L774.4,435.4Z","c":[782,432]},"aedui":{"d":"M317,237.4L317.6,235.1L318.5,232.8L319.8,230.8L321.4,229L323.4,227.5L325.5,226.3L327.8,225.6L330.3,225.3L332.7,225.4L335.1,225.9L337.3,226.8L339.4,228.2L341.2,229.8L342.6,231.7L343.8,233.9L344.5,236.2L344.8,238.6L344.7,241L344.2,243.4L343.2,245.7L341.9,247.7L340.3,249.5L338.4,251L336.2,252.1L333.9,252.8L331.5,253.2L329.1,253L326.7,252.5L324.5,251.6L322.4,250.3L320.6,248.7L319.1,246.7L318,244.6L317.3,242.3L316.9,239.9L317,237.4Z","c":[331,239]},"remi":{"d":"M323.5,194.9L323.9,193.2L324.6,191.5L325.6,190L326.8,188.7L328.2,187.6L329.8,186.8L331.6,186.2L333.3,186L335.1,186.1L336.9,186.5L338.5,187.2L340.1,188.2L341.4,189.4L342.5,190.8L343.3,192.4L343.8,194.1L344,195.9L343.9,197.7L343.5,199.5L342.8,201.1L341.9,202.6L340.6,203.9L339.2,205L337.6,205.8L335.9,206.4L334.1,206.6L332.3,206.5L330.6,206.1L328.9,205.4L327.4,204.4L326.1,203.2L325,201.8L324.2,200.2L323.7,198.5L323.5,196.7Z","c":[334,196]},"camulodunum":{"d":"M301.3,140.6L301.4,140L301.7,139.4L302.1,138.8L302.6,138.4L303.1,138L303.7,137.7L304.3,137.6L305,137.5L305.7,137.6L306.3,137.7L306.9,138L307.4,138.4L307.9,138.9L308.3,139.4L308.5,140L308.7,140.6L308.8,141.3L308.7,142L308.5,142.6L308.2,143.2L307.9,143.7L307.4,144.2L306.9,144.6L306.3,144.8L305.6,145L305,145.1L304.3,145L303.7,144.8L303.1,144.5L302.6,144.2L302.1,143.7L301.7,143.2L301.4,142.6L301.3,141.9L301.2,141.3Z","c":[305,141]},"anavionenses":{"d":"M265.9,70.7L266.2,69.8L266.6,68.9L267.2,68.1L268,67.4L268.8,66.9L269.8,66.5L270.7,66.3L271.7,66.3L272.7,66.4L273.7,66.7L274.6,67.2L275.4,67.8L276.1,68.5L276.6,69.4L277,70.3L277.2,71.3L277.2,72.3L277.1,73.3L276.8,74.2L276.3,75.1L275.7,75.9L274.9,76.6L274.1,77.1L273.2,77.5L272.2,77.7L271.2,77.7L270.2,77.6L269.2,77.3L268.4,76.8L267.6,76.2L266.9,75.5L266.4,74.6L266,73.7L265.8,72.7L265.7,71.7Z","c":[271,72]}},"views":{"all":[0,0,1000,655],"west":[73,24,481,472],"centre":[311,189,702,450],"east":[558,243,960,581],"levant":[652,382,895,655]},"seas":[["Mare Internum",499,479],["Pontus Euxinus",722,296],["Oceanus",160,215],["Mare Rubrum",804,612]]};
+
+/* ---------- jurisdiction, evidence, blur scales ---------- */
+const J = { rome:"Rome & Italy (citizen census)", imp:"Imperial province (legate)", sen:"Senatorial province (proconsul)", equ:"Equestrian province (prefect or procurator)", cli:"Client kingdom", civ:"Civic census under Roman rule", late:"Late empire (after 284)" };
+const JORDER = ["rome","imp","sen","equ","cli","civ","late"];
+const QOP = { 3:.8, 2:.5, 1:.24 };
+const QLAB = { 3:"Well documented: firm date, named officials, figures or original returns", 2:"Attested, but date approximate or details thin", 1:"Fragmentary, restored, undated or inferred" };
+const BSD = [0, 1.8, 5.5, 12];
+const BLAB = ["Defined territory (a city, a district)", "Whole province, edges approximate", "Part of a province; reach unclear", "Reach unknown or empire-wide in a vague sense"];
+
+const RN = { urbs_latium:"Rome & Latium", ager_romanus:"Ager Romanus", italia:"Italy", annonaria:"Italia annonaria (north Italy)", sicilia:"Sicily", narbonensis:"Gallia Narbonensis", aquitania:"Aquitania", lugdunensis:"Gallia Lugdunensis", belgica:"Gallia Belgica", germania_inf:"Germania Inferior", tres_galliae:"Tres Galliae", galliae:"The Gauls", hispania_citerior:"Hispania Citerior", lusitania:"Lusitania", baetica:"Baetica", hispaniae:"The Spanish provinces", vascones:"Vascones & Varduli", caesaraug:"Conventus Caesaraugustanus", britannia:"Britannia", anavionenses:"Brittones Anavionenses", camulodunum:"Camulodunum", thracia:"Thracia", macedonia:"Macedonia", pannonia:"Pannonia", bithynia:"Bithynia", paphlagonia:"Paphlagonia", cappadocia:"Cappadocia", cietae:"Cietae (Cilicia Tracheia)", asia_aegean:"Aegean & western Asia Minor", syria:"Syria", levant_tetrarchic:"Syria Phoenice & Batanea", apamea:"Apamea", judaea:"Judaea", herod_kingdom:"Herod's kingdom", arabia:"Arabia", aegyptus:"Egypt", cyrenaica:"Cyrenaica", africa:"Africa Proconsularis", imperium:"Empire-wide", rome:"City of Rome", aedui:"Aedui (Autun)", remi:"Remi (Reims)" };
+const SHORT = { tres_galliae:"Tres Galliae", galliae:"Galliae", hispaniae:"Hispaniae", levant_tetrarchic:"Batanea", herod_kingdom:"Herod's kingdom", cietae:"Cietae", asia_aegean:"Aegean", annonaria:"Italia annonaria", ager_romanus:"Ager Romanus", urbs_latium:"Latium", anavionenses:"Anavionenses" };
+const POINTS = new Set(["rome","apamea","aedui","remi","camulodunum","anavionenses"]);
+const ORDER = ["imperium","galliae","hispaniae","tres_galliae","italia","hispania_citerior","aegyptus","lugdunensis","aquitania","belgica","narbonensis","germania_inf","lusitania","baetica","britannia","annonaria","ager_romanus","syria","cappadocia","herod_kingdom","arabia","africa","thracia","macedonia","pannonia","asia_aegean","bithynia","paphlagonia","sicilia","cyrenaica","cietae","judaea","levant_tetrarchic","caesaraug","vascones","urbs_latium","aedui","remi","apamea","anavionenses","camulodunum","rome"];
+const RBLUR = { urbs_latium:1, ager_romanus:2, italia:1 };
+
+/* ---------- catalogue ---------- */
+const E = [];
+const add = o => { o.y = Array.isArray(o.y) ? o.y : [o.y, o.y]; o.st = o.st || "ok"; E.push(o); };
+const rep = (y, off, note, q, st) => add({ y, r:"rome_cit", j:"rome", q, b:-1, off, emp:"Republic", note, st });
+
+// (a) Republican citizen censuses at Rome
+rep(-403, "M. Furius Camillus; M. Postumius Albinus Regillensis", "Lustrum XVI in the numbered tradition", 2);
+rep([-393,-392], "L. Papirius Cursor; C. Julius Iullus (d.); M. Cornelius Maluginensis (suffect)", "Livy 5.31.6; Pliny NH 33.16: 152,573. Lustrum disputed", 2, "nr");
+rep(-389, "M. Furius Fusus?; L. Papirius Mugillanus?", "Diodorus 15.22.1 only; Broughton: very doubtful", 1, "nr");
+rep(-380, "Sp. Postumius Albinus Regillensis (d.); C. Sulpicius Camerinus", "A censor died; colleague abdicated (Livy 6.27.4–5)", 2, "aborted");
+rep(-378, "Sp. Servilius Priscus; Q. Cloelius Siculus", "Census blocked by war (Livy 6.31.2)", 2, "aborted");
+rep(-366, "C. Sulpicius Peticus; Postumius Regillensis (?)", "Fasti Capitolini; abdication reported", 1, "aborted");
+rep(-363, "M. Fabius Ambustus; L. Furius Medullinus", "Fasti Capitolini", 1, "nr");
+rep(-351, "Cn. Manlius Capitolinus Imperiosus; C. Marcius Rutilus", "First plebeian censor (Livy 7.22.7–10)", 2);
+rep([-340,-339], "Names uncertain", "Eusebius Ol. 110.1: 160,000 / 165,000", 1, "nr");
+rep(-332, "Sp. Postumius Albinus Caudinus; Q. Publilius Philo", "Livy 8.17.11; tribes Maecia and Scaptia added", 3);
+rep(-319, "C. Sulpicius Longus; colleague's name lost", "Abdicated (Broughton)", 1, "aborted");
+rep(-318, "L. Papirius Crassus; C. Maenius", "Livy 9.20.6; tribes Ufentina and Falerna added", 3);
+rep(-312, "Ap. Claudius Caecus; C. Plautius Venox", "Livy 9.29, 9.33–34; lustrum disputed", 3, "nr");
+rep(-307, "M. Valerius Maximus; C. Junius Bubulcus Brutus", "Livy 9.43.25", 3);
+rep(-304, "Q. Fabius Maximus Rullianus; P. Decius Mus", "Livy 9.46.14–15", 3);
+rep(-300, "P. Sempronius Sophus; P. Sulpicius Saverrio", "Livy 10.9.14; tribes Aniensis and Teretina added", 3);
+rep(-294, "P. Cornelius Arvina; C. Marcius Rutilus Censorinus", "Lustrum; Livy 10.47.2: 262,321", 3);
+rep(-289, "Q. Fabius Maximus Gurges?; Sp. Carvilius Maximus?", "Per. 11: 272,000; names and date uncertain", 2);
+rep(-283, "Q. Caedicius Noctua; colleague unknown", "Abdicated; Fasti damaged", 1, "aborted");
+rep(-280, "Cn. Domitius Calvinus Maximus; L. Cornelius Scipio Barbatus", "First plebeian lustrum; Per. 13: 287,222", 3);
+rep(-275, "C. Fabricius Luscinus; Q. Aemilius Papus", "Per. 14: 271,224", 3);
+rep(-272, "M'. Curius Dentatus; L. Papirius Praetextatus", "", 2, "nr");
+rep(-269, "L. Aemilius Barbula; Q. Marcius Philippus", "", 2, "nr");
+rep(-265, "Cn. Cornelius Blasio; C. Marcius Rutilus Censorinus (2nd term)", "Per. 16: 382,234 (var. 292,234)", 3);
+rep(-258, "L. Cornelius Scipio; C. Duilius", "", 2, "nr");
+rep(-253, "L. Postumius Megellus (d.); D. Junius Pera", "No lustrum", 2, "aborted");
+rep(-252, "M'. Valerius Maximus Messalla; P. Sempronius Sophus", "Per. 18: 297,797", 3);
+rep(-247, "A. Manlius Torquatus Atticus; A. Atilius Calatinus", "Per. 19: 241,212", 3);
+rep(-241, "M. Fabius Buteo; C. Aurelius Cotta", "Tribes Velina and Quirina added; Jerome: 260,000", 3);
+rep(-236, "L. Cornelius Lentulus Caudinus; Q. Lutatius Cerco", "Abdicated", 2, "aborted");
+rep(-234, "A. Postumius Albinus; C. Atilius Bulbus", "Per. 20: 270,213", 3);
+rep(-231, "T. Manlius Torquatus; Q. Fulvius Flaccus", "Abdicated, elected under a ritual flaw", 2, "aborted");
+rep(-230, "Q. Fabius Maximus Verrucosus; M. Sempronius Tuditanus", "", 2, "nr");
+rep(-225, "C. Claudius Centho; M. Junius Pera", "", 2, "nr");
+rep(-220, "L. Aemilius Papus; C. Flaminius", "Circus and Via Flaminia built", 2, "nr");
+rep(-214, "M. Atilius Regulus; P. Furius Philus (d.)", "No lustrum (Livy 24.43.4)", 2, "aborted");
+rep(-210, "L. Veturius Philo (d.); P. Licinius Crassus Dives", "No lustrum (Livy 27.6.17)", 2, "aborted");
+rep(-209, "M. Cornelius Cethegus; P. Sempronius Tuditanus", "Livy 27.36.7: 137,108", 3);
+rep(-204, "C. Claudius Nero; M. Livius Salinator", "Livy 29.37.6: 214,000; soldiers in the field counted", 3);
+rep(-199, "P. Cornelius Scipio Africanus; P. Aelius Paetus", "Lustrum (Livy 32.7.2–3)", 3);
+rep(-194, "Sex. Aelius Paetus Catus; C. Cornelius Cethegus", "Livy 35.9.2: 143,704", 3);
+rep(-189, "T. Quinctius Flamininus; M. Claudius Marcellus", "Livy 38.36.10: 258,318", 3);
+rep(-184, "M. Porcius Cato; L. Valerius Flaccus", "Lustrum (Livy 39.42–44)", 3);
+rep(-179, "M. Aemilius Lepidus; M. Fulvius Nobilior", "Per. 41: 258,794", 3);
+rep(-174, "A. Postumius Albinus Luscus; Q. Fulvius Flaccus", "Livy 42.10.1: 269,015", 3);
+rep(-169, "C. Claudius Pulcher; Ti. Sempronius Gracchus", "Per. 45: 312,805", 3);
+rep(-164, "L. Aemilius Paullus; Q. Marcius Philippus", "Per. 46: 337,022", 3);
+rep(-159, "P. Cornelius Scipio Nasica Corculum; M. Popillius Laenas", "Per. 47: 328,316", 3);
+rep(-154, "M. Valerius Messalla; C. Cassius Longinus", "Per. 48: 324,000", 3);
+rep(-147, "L. Cornelius Lentulus Lupus; L. Marcius Censorinus", "Eusebius: 322,000", 3);
+rep(-142, "P. Cornelius Scipio Aemilianus; L. Mummius", "Per. 54: 328,442", 3);
+rep(-136, "Ap. Claudius Pulcher; Q. Fulvius Nobilior", "Per. 56: 317,933", 3);
+rep(-131, "Q. Caecilius Metellus Macedonicus; Q. Pompeius", "First all-plebeian pair; Per. 59: 318,823", 3);
+rep(-125, "Cn. Servilius Caepio; L. Cassius Longinus Ravilla", "Per. 60: 394,736", 3);
+rep(-120, "L. Calpurnius Piso Frugi; Q. Caecilius Metellus Balearicus", "", 2, "nr");
+rep(-115, "L. Caecilius Metellus Diadematus; Cn. Domitius Ahenobarbus", "Per. 63: 394,336", 3);
+rep(-109, "M. Aemilius Scaurus; M. Livius Drusus (d.)", "No lustrum; Scaurus forced out", 2, "aborted");
+rep(-108, "Q. Fabius Maximus Eburnus; C. Licinius Geta", "", 2, "nr");
+rep(-102, "Q. Caecilius Metellus Numidicus; C. Caecilius Metellus Caprarius", "", 2, "nr");
+rep(-97, "L. Valerius Flaccus; M. Antonius", "", 2, "nr");
+rep(-92, "Cn. Domitius Ahenobarbus; L. Licinius Crassus", "Edict against Latin rhetors; lustrum probably not held", 2, "nr");
+rep(-89, "L. Julius Caesar; P. Licinius Crassus", "New Italian citizens not fully registered", 2, "partial");
+rep(-86, "L. Marcius Philippus; M. Perperna", "Jerome: 463,000", 3);
+rep([-70,-69], "Cn. Cornelius Lentulus Clodianus; L. Gellius Poplicola", "Phlegon: 910,000; Per. 98: 900,000. Last completed Republican census", 3);
+rep(-65, "M. Licinius Crassus; Q. Lutatius Catulus", "Abdicated without a census (Plut. Crass. 13; Dio 37.9.3)", 2, "aborted");
+rep(-64, "L. Aurelius Cotta; colleague unknown", "Abdicated (Dio 37.9.4)", 2, "aborted");
+rep(-61, "Names unknown (L. Julius Caesar? C. Scribonius Curio?)", "Dio 37.46.4; no lustrum", 1, "aborted");
+rep(-55, "M. Valerius Messalla Niger; P. Servilius Vatia Isauricus", "No lustrum", 2, "aborted");
+rep(-50, "Ap. Claudius Pulcher; L. Calpurnius Piso Caesoninus", "No lustrum (Dio 40.63)", 2, "aborted");
+add({ y:-46, r:"rome", j:"rome", q:3, b:0, off:"C. Julius Caesar, dictator", emp:"Republic", note:"Head count of grain recipients, 320,000 cut to 150,000 (Suet. Iul. 41.3). Not a census proper", st:"headcount" });
+add({ y:[-45,-44], r:"italia", j:"rome", q:1, b:1, off:"Caesar's law: municipal magistrates to report returns to Rome", emp:"Republic", note:"Tabula Heracleensis, CIL I² 593, ll. 142–156. Not known to have been carried out", st:"law" });
+rep(-42, "C. Antonius Hybrida; P. Sulpicius Rufus", "No lustrum", 2, "aborted");
+
+// (b) Imperial citizen censuses
+add({ y:-28, r:"italia", j:"rome", q:3, b:2, off:"Augustus and M. Agrippa (consular power)", emp:"Augustus", note:"Res Gestae 8.2: 4,063,000 citizens" });
+add({ y:-22, r:"italia", j:"rome", q:2, b:2, off:"Paullus Aemilius Lepidus; L. Munatius Plancus (censors)", emp:"Augustus", note:"Dio 54.2.1; Vell. 2.95.3. No lustrum", st:"aborted" });
+add({ y:-8, r:"italia", j:"rome", q:3, b:2, off:"Augustus alone (consular power)", emp:"Augustus", note:"Res Gestae 8.3: 4,233,000" });
+add({ y:4, r:"italia", j:"rome", q:2, b:1, off:"Augustus (proconsular power)", emp:"Augustus", note:"Residents of Italy worth ≥ 200,000 HS only (Dio 55.13.4–6)", st:"partial" });
+add({ y:[13,14], r:"italia", j:"rome", q:3, b:2, off:"Augustus and Tiberius", emp:"Augustus", note:"Res Gestae 8.4: 4,937,000; lustrum May 14" });
+add({ y:[47,48], r:"italia", j:"rome", q:3, b:2, off:"Claudius and L. Vitellius (censors)", emp:"Claudius", note:"Tac. Ann. 11.25: 5,984,072; lustrum closed" });
+add({ y:[73,74], r:"italia", j:"rome", q:3, b:2, off:"Vespasian and Titus (censors)", emp:"Vespasian", note:"Suet. Vesp. 8.1; Pliny NH 7.162–164. Last lustrum, AD 74" });
+
+// (c) Egypt
+const eg = (y, emp, off, q, note) => add({ y, r:"aegyptus", j:"equ", q, b:1, off: off || "Prefect of Egypt; laographoi and village scribes", emp, note });
+eg([-11,-10], "Augustus", "", 1, "Inferred from age notations in SB XX 14440; start of a 7-year cycle (Claytor & Bagnall 2015)");
+eg([-4,-3], "Augustus", "Prefect; five laographoi", 2, "P.Mich. inv. 4406a, Theadelphia. Earliest surviving declaration");
+eg([4,5], "Augustus", "", 2, "Status examination (epikrisis) attested; Bagnall, GRBS 32 (1991)");
+eg([11,12], "Augustus", "", 3, "SB XX 14440, Theadelphia. Earliest return in Bagnall & Frier");
+eg([19,20], "Tiberius", "", 1, "P.Oxy. II 254, undated; possible start of the 14-year cycle");
+eg([33,34], "Tiberius", "A. Avillius Flaccus (prefect)", 3, "SB I 5661; SB X 10759. First secure 14-year census");
+eg([47,48], "Claudius", "", 3, "Bagnall & Frier catalogue");
+eg([61,62], "Nero", "", 3, "Bagnall & Frier catalogue");
+eg([75,76], "Vespasian", "", 3, "Bagnall & Frier catalogue");
+eg([89,90], "Domitian", "M. Mettius Rufus (prefect)", 3, "Returns begin citing the prefect's order");
+eg([103,104], "Trajan", "C. Vibius Maximus (prefect)", 3, "Edict P.Lond. III 904 orders absentees home to register");
+eg([117,118], "Hadrian", "", 3, "Bagnall & Frier catalogue");
+eg([131,132], "Hadrian", "", 3, "Bagnall & Frier catalogue");
+eg([145,146], "Antoninus Pius", "", 3, "Bagnall & Frier catalogue");
+eg([159,160], "Antoninus Pius", "", 3, "Bagnall & Frier catalogue");
+eg([173,174], "Marcus Aurelius", "", 3, "Post-plague census");
+eg([187,188], "Commodus", "", 3, "Bagnall & Frier catalogue");
+eg([201,202], "Septimius Severus", "Q. Maecius Laetus (prefect)", 3, "Bagnall & Frier catalogue");
+eg([215,216], "Caracalla", "", 3, "Bagnall & Frier catalogue");
+eg([229,230], "Severus Alexander", "", 3, "Bagnall & Frier catalogue");
+eg([243,244], "Gordian III", "", 3, "Bagnall & Frier catalogue");
+eg([257,258], "Valerian & Gallienus", "", 3, "Last known round; latest return survives in a later copy");
+
+// (c) Gaul and Germania
+add({ y:-27, r:"tres_galliae", j:"imp", q:2, b:2, off:"Augustus, at a conventus in Narbo", emp:"Augustus", note:"Livy Per. 134; Dio 53.22.5. Earliest attested provincial census" });
+add({ y:-12, r:"tres_galliae", j:"imp", q:3, b:1, off:"Nero Claudius Drusus", emp:"Augustus", note:"Livy Per. 139 (unrest over the census); ILS 212" });
+add({ y:[14,16], r:"tres_galliae", j:"imp", q:3, b:1, off:"Germanicus; P. Vitellius and C. Antius (deputies)", emp:"Augustus → Tiberius", note:"Tac. Ann. 1.31.2, 1.33.1, 2.6.1" });
+add({ y:61, r:"tres_galliae", j:"imp", q:3, b:1, off:"Q. Volusius Saturninus; T. Sextius Africanus; M. Trebellius Maximus", emp:"Nero", note:"Tac. Ann. 14.46" });
+add({ y:[60,61], r:"aquitania", j:"imp", q:2, b:2, off:"C. Aemilius Fraternus (military tribune)", emp:"Nero", note:"CIL II 4188 = ILS 1393. Probably part of the AD 61 census" });
+add({ y:[14,37], r:"narbonensis", j:"sen", q:1, b:1, off:"Torquatus Novellius Atticus (legate for census and levy)", emp:"Tiberius (unconfirmed)", note:"CIL XIV 3602 = ILS 950. Census in a senatorial province", dl:"early 1st c. AD" });
+add({ y:[98,109], r:"lugdunensis", j:"imp", q:2, b:1, off:"C. Julius Proculus (legate ad census)", emp:"Trajan", note:"CIL X 6658", dl:"before AD 109" });
+add({ y:[138,160], r:"aquitania", j:"imp", q:1, b:1, off:"Senator, perhaps T. Prifernius Paetus Rosianus Geminus", emp:"Antoninus Pius", note:"Fragmentary career text; identification uncertain", dl:"c. 140s" });
+add({ y:[161,180], r:"aquitania", j:"imp", q:1, b:1, off:"Unnamed official chosen by Marcus Aurelius", emp:"Marcus Aurelius", note:"CIL XII 671; heavily restored" });
+add({ y:[161,180], r:["belgica","germania_inf"], j:"imp", q:2, b:2, off:"Q. Domitius Marsianus (procurator ad census)", emp:"Marcus Aurelius", note:"AE 1962, 183 (Bulla Regia): Tungri, Frisiavones, Batavi" });
+add({ y:[100,199], r:"belgica", j:"imp", q:1, b:1, off:"Unnamed senator, chosen by imperial selection", emp:"Unknown", note:"CIL XIV 3593", u:true, dl:"2nd c.?" });
+add({ y:[193,211], r:"tres_galliae", j:"imp", q:1, b:2, off:"Unnamed eques, first eques Romanus a censibus accipiendis", emp:"Septimius Severus (?)", note:"CIL XIII 1680", dl:"c. AD 200" });
+add({ y:[197,202], r:["lugdunensis","hispania_citerior"], j:"imp", q:2, b:1, off:"Q. Hedius Rufus Lollianus Gentianus (censitor)", emp:"Septimius Severus", note:"CIL II 4121 (verify)" });
+add({ y:[244,249], r:["lugdunensis","baetica@sen"], j:"imp", q:2, b:1, off:"Prudens Crispinus (legate ad census acceptandos)", emp:"Philip", note:"AE 1995, 124 (date to verify)", dl:"AD 247?" });
+add({ y:[14,260], r:["lugdunensis","thracia"], j:"imp", q:1, b:3, off:"Unnamed procurator ad accipiendos census", emp:"Unknown", note:"CIL XIV 4250", u:true, dl:"undated" });
+add({ y:[14,260], r:"lugdunensis", j:"imp", q:1, b:2, off:"Unnamed censitor; adiutor and dispensator ad census", emp:"Unknown", note:"CIL VI 1333; XII 408; VI 8578", u:true, dl:"undated" });
+add({ y:[14,260], r:"aquitania", j:"imp", q:1, b:2, off:"Unnamed censitor; unnamed legate censuum accipiendorum", emp:"Unknown", note:"CIL V 7783; XIV 2925", u:true, dl:"undated" });
+add({ y:[85,260], r:"germania_inf", j:"imp", q:1, b:2, off:"Unnamed legate ad census; a \"censor Germ. inferioris\"", emp:"Unknown", note:"CIL III 10804 (mostly restored); XI 709", u:true, dl:"undated" });
+add({ y:[14,260], r:"remi", j:"civ", q:1, b:0, off:"Local censor civitatis", emp:"Unknown", note:"CIL XII 1855. Civic magistrate of an allied community", u:true, dl:"undated" });
+
+// Iberia
+add({ y:[-27,-1], r:"lusitania", j:"imp", q:2, b:2, off:"Unnamed legate sent pro censore ad Lusitanos", emp:"Augustus", note:"CIL X 680 (Surrentum)", dl:"late 1st c. BC" });
+add({ y:[72,74], r:"hispania_citerior", j:"imp", q:3, b:1, off:"L. Junius Q. Vibius Crispus (legate in censibus accipiendis)", emp:"Vespasian", note:"CIL VI 332; Pliny NH 3.28 gives conventus totals" });
+add({ y:[117,161], r:"vascones", j:"imp", q:2, b:1, off:"C. Mocconius Verus (tribune, legio VII Gemina)", emp:"Hadrian or Antoninus Pius", note:"CIL VI 1463; 23 or 24 civitates" });
+add({ y:[69,96], r:"caesaraug", j:"imp", q:1, b:1, off:"Unnamed censitor", emp:"Flavian?", note:"CIL VIII 7070 = 19428; heavily restored" });
+
+// Britain, Danube, Balkans
+add({ y:[95,100], r:"anavionenses", j:"imp", q:2, b:1, off:"T. Haterius Nepos (censitor)", emp:"Domitian or Trajan", note:"CIL XI 5213 = ILS 1338; Tab.Vindol. 611", dl:"c. AD 95–100" });
+add({ y:[98,138], r:"camulodunum", j:"imp", q:2, b:0, off:"Cn. Munatius Aurelius Bassus (censitor civium Romanorum)", emp:"Trajan or Hadrian", note:"CIL XIV 3955. Census of the colony's Roman citizens", dl:"early 2nd c." });
+add({ y:[46,260], r:"thracia", j:"imp", q:1, b:2, off:"Unnamed censitor provinciae Thraciae; a Greek legate-censor", emp:"Unknown", note:"CIL V 7784; CIL XIV 4250", u:true, dl:"undated" });
+add({ y:[117,122], r:"macedonia", j:"sen", q:2, b:1, off:"D. Terentius Gentianus (censitor)", emp:"Hadrian", note:"ILS 1046; Heraclea Sintica text" });
+add({ y:[98,117], r:"pannonia", j:"imp", q:2, b:3, off:"T. Eppius Latinus (procurator ad census accipiendos)", emp:"Trajan", note:"Inscription from Neviodunum; province of the census not named" });
+
+// Asia Minor, Levant, Arabia, Africa
+add({ y:[6,7], r:"syria", j:"imp", q:3, b:1, off:"P. Sulpicius Quirinius (legate of Syria)", emp:"Augustus", note:"Jos. AJ 17.355, 18.1–4, 18.26; Luke 2:2; Acts 5:37" });
+add({ y:[6,7], r:"judaea", j:"equ", q:3, b:0, off:"Coponius (first prefect), under Quirinius", emp:"Augustus", note:"Josephus AJ 18.1–4, 18.26; revolt of Judas the Galilean" });
+add({ y:6, r:"apamea", j:"imp", q:3, b:0, off:"Q. Aemilius Secundus (prefect), on Quirinius's orders", emp:"Augustus", note:"CIL III 6687 = ILS 2683: 117,000 homines cives" });
+add({ y:36, r:"cietae", j:"cli", q:3, b:2, off:"Archelaus II (client king); M. Trebellius, sent by L. Vitellius", emp:"Tiberius", note:"Tac. Ann. 6.41: census \"in the Roman manner\" provoked revolt" });
+add({ y:[138,161], r:"cappadocia", j:"imp", q:2, b:1, off:"Q. Baienus Blassianus (procurator ad census accipiendos)", emp:"Antoninus Pius", note:"Ostia inscription, AE 1974, 123 (verify)" });
+add({ y:[-6,260], r:"paphlagonia", j:"imp", q:1, b:2, off:"Unnamed official ad census Paphlagoniae", emp:"Unknown", note:"CIL III 6819 (Pisidian Antioch)", u:true, dl:"undated" });
+add({ y:127, r:"arabia", j:"imp", q:3, b:2, off:"T. Aninius Sextius Florentinus (legate)", emp:"Hadrian", note:"P.Yadin 16 (Babatha), declared 2–4 Dec 127; Rabbath-Moab district documented" });
+add({ y:[1,260], r:"africa", j:"sen", q:1, b:3, off:"Unnamed military tribune, legio III Augusta", emp:"Unknown", note:"CIL III 388; 34 or 44 civitates", u:true, dl:"undated" });
+add({ y:[-7,-6], r:"cyrenaica", j:"sen", q:2, b:2, off:"Governor (registers of resident Romans)", emp:"Augustus", note:"First Cyrene edict: 215 Romans worth ≥ 2,500 denarii. A property register, not a full census", st:"partial" });
+
+// Republican-era civic censuses under Roman rule
+add({ y:[-72,-71], r:"sicilia", j:"civ", q:3, b:1, off:"City censores under the lex Hieronica; appointments manipulated by Verres", emp:"Republic", note:"Cicero, Verr. 2.2.131–139" });
+add({ y:[-210,-44], r:"sicilia", j:"civ", q:1, b:1, off:"City censores, every five years (lex Hieronica)", emp:"Republic", note:"Regular quinquennial practice implied by Cicero", dl:"regular, after 210 BC" });
+add({ y:[-63,112], r:"bithynia", j:"civ", q:2, b:1, off:"Civic censores under the lex Pompeia", emp:"Republic → Trajan", note:"Pliny Ep. 10.79", dl:"from 63 BC" });
+
+// (d) Late empire
+add({ y:[287,292], r:"aegyptus", j:"late", q:2, b:1, off:"Prefects; tax-assessment (epigraphe) cycle", emp:"Diocletian", note:"Thomas, BASP 15 (1978); Bagnall & Worp" });
+add({ y:[292,297], r:"aegyptus", j:"late", q:2, b:1, off:"Prefects; tax-assessment (epigraphe) cycle", emp:"Diocletian", note:"Thomas, BASP 15 (1978); Bagnall & Worp" });
+add({ y:297, r:"aegyptus", j:"late", q:3, b:1, off:"Aristius Optatus (prefect)", emp:"Diocletian & colleagues", note:"P.Cair.Isid. 1, 16 March 297: new census of land, persons and age" });
+add({ y:[297,302], r:"aegyptus", j:"late", q:2, b:1, off:"Prefects; tax-assessment (epigraphe) cycle", emp:"Diocletian", note:"Thomas, BASP 15 (1978); Bagnall & Worp" });
+add({ y:[297,300], r:"levant_tetrarchic", j:"late", q:3, b:0, off:"Censitores Aelius Statutus and Baseileikos", emp:"Diocletian & colleagues", note:"40+ Tetrarchic field boundary stones (Hula, Golan, Hauran, limestone massif)", dl:"c. 297–300" });
+add({ y:[290,330], r:"asia_aegean", j:"late", q:2, b:2, off:"Census registers in iuga and capita; officials not named", emp:"Tetrarchy", note:"Thera, Tralles, Magnesia, Mylasa, Chios, Cos, Lesbos, Samos etc. (Harper, JRS 2008)", dl:"late 3rd – early 4th c." });
+add({ y:[290,299], r:"annonaria", j:"late", q:2, b:1, off:"Imperial assessors", emp:"Diocletian", note:"Aurelius Victor 39.31: northern Italy brought under regular tribute", dl:"c. 290s" });
+add({ y:306, r:"imperium", j:"late", q:2, b:3, off:"Censitores sent to every province and city", emp:"Galerius", note:"Lactantius DMP 23, 26.2; extension to Rome set off Maxentius's usurpation" });
+add({ y:306, r:"rome", j:"late", q:2, b:0, off:"Galerius's censitores", emp:"Galerius", note:"Lactantius DMP 26.2: Rome itself registered" });
+add({ y:[306,311], r:"aedui", j:"late", q:3, b:1, off:"Tetrarchic census; remission by Constantine", emp:"Constantine", note:"Pan. Lat. 5(8): 32,000 capita cut by 7,000 in 311" });
+add({ y:311, r:"pannonia", j:"late", q:2, b:3, off:"Imperial chancery (Brigetio Table)", emp:"Licinius & Constantine", note:"Soldiers' exemption of 5 capita from the census implies registration", st:"partial" });
+[312,327,342,357,372,387].forEach(y => add({ y, r:"imperium", j:"late", q:1, b:3, off:"Praetorian prefects; censitores, peraequatores, inspectores", emp: y < 337 ? "Constantine" : y < 361 ? "Constantius II" : y < 375 ? "Valentinian & Valens" : "Theodosius", note:`Start of a 15-year indiction cycle. CTh 13.10–11; specific operations rarely attested` }));
+add({ y:[356,359], r:"galliae", j:"late", q:2, b:2, off:"Julian (Caesar) against Florentius (praetorian prefect)", emp:"Constantius II", note:"Amm. 16.5.14, 17.3: capitatio cut from 25 to 7 aurei. A reassessment, not a census proper", st:"partial" });
+
+// (e) Disputed
+add({ y:[-7,-4], r:"herod_kingdom", j:"cli", q:1, b:2, disp:true, off:"Herod the Great; Quirinius?", emp:"Augustus", note:"Luke 2:1–2 only; no corroboration" });
+add({ y:[-9,-6], r:"herod_kingdom", j:"cli", q:1, b:2, disp:true, off:"C. Sentius Saturninus (legate of Syria)", emp:"Augustus", note:"Tertullian, Adv. Marc. 4.19.10; late apologetic source" });
+add({ y:[-4,-1], r:"syria", j:"imp", q:1, b:3, disp:true, off:"Unnamed legate \"iterum\" (Quirinius?)", emp:"Augustus", note:"Lapis Tiburtinus, CIL XIV 3613. Name lost; not evidence of a census", st:"nocensus" });
+add({ y:[-8,-1], r:"imperium", j:"imp", q:1, b:3, disp:true, off:"Augustus; \"twenty commissioners\"", emp:"Augustus", note:"Luke 2:1; Orosius 6.22, 7.2; Cassiodorus Var. 3.52; Suda. Late and derivative" });
+add({ y:-27, r:"hispaniae", j:"imp", q:1, b:3, disp:true, off:"Augustus", emp:"Augustus", note:"Inferred from Dio 53.22.5" });
+add({ y:[-26,-25], r:"aegyptus", j:"equ", q:1, b:1, disp:true, off:"Prefect", emp:"Augustus", note:"Capponi's proposal; rejected by Claytor & Bagnall" });
+add({ y:[85,96], r:"rome", j:"rome", q:2, b:0, disp:true, off:"Domitian (censoria potestas 84, censor perpetuus 85)", emp:"Domitian", note:"Dio 67.4.3. Moral-supervisory title; no census or lustrum", st:"nocensus" });
+add({ y:251, r:"rome", j:"rome", q:1, b:0, disp:true, off:"Decius, reviving the censorship for Valerian", emp:"Decius", note:"Historia Augusta, Valer. 5–6. Fiction", st:"nocensus" });
+add({ y:[98,117], r:null, j:"imp", q:1, b:3, disp:true, off:"Unnamed legatus ad census accipiendos", emp:"Trajan", note:"Cited in RE \"Census\"; province not identified" });
+
+/* ---------- normalise ---------- */
+const resolveRome = y0 => y0 <= -339 ? "urbs_latium" : y0 <= -90 ? "ager_romanus" : "italia";
+E.forEach((e, i) => {
+  e.id = i;
+  const rs = e.r == null ? [] : (Array.isArray(e.r) ? e.r : [e.r]);
+  e.rs = rs.map(s => { let [k, j] = s.split("@"); if (k === "rome_cit") k = resolveRome(e.y[0]); return { k, j: j || e.j }; });
+  if (e.b < 0) e.b = RBLUR[e.rs[0].k] ?? 1;
+});
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (parent) parent.appendChild(n); return n; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const fy = y => y < 0 ? `${-y} BC` : `AD ${y}`;
+const fr = (a, b) => a === b ? fy(a) : (a < 0 && b < 0) ? `${-a}–${-b} BC` : (a > 0 && b > 0) ? `AD ${a}–${b}` : `${-a} BC – AD ${b}`;
+const fspan = (a, b) => a === b ? fy(a) : `${fy(a)} – ${fy(b)}`;
+const jc = j => `var(--j-${j})`;
+const ST = { nr:"Lustrum not recorded", aborted:"Aborted", partial:"Partial", law:"Law only", headcount:"Head count", nocensus:"Not a census" };
+
+/* ---------- state ---------- */
+const MIN = -405, MAX = 400;
+let win = [-27, 14];
+const tog = { disp:true, abort:true, und:true };
+let sel = null; // {type:'region', k} | {type:'point', x, y}
+
+/* ---------- map setup ---------- */
+const { W, H } = GEO;
+const svg = $("#map");
+svg.style.setProperty("--ar", `${W} / ${H}`);
+svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+const defs = el("defs", {}, svg);
+el("path", { id:"landshape", d: GEO.land }, el("clipPath", { id:"landclip" }, defs));
+JORDER.forEach(j => {
+  const p = el("pattern", { id:`h-${j}`, patternUnits:"userSpaceOnUse", width:7, height:7, patternTransform:"rotate(45)" }, defs);
+  el("rect", { width:7, height:7, style:`fill:${jc(j)};fill-opacity:.14` }, p);
+  el("rect", { width:2.4, height:7, style:`fill:${jc(j)}` }, p);
+});
+el("rect", { x:-W, y:-H, width:W*3, height:H*3, style:"fill:var(--sea)" }, svg);
+el("path", { d: GEO.grat, style:"fill:none;stroke:var(--grat);stroke-width:.7", "vector-effect":"non-scaling-stroke" }, svg);
+const landPath = el("path", { d: GEO.land, style:"fill:var(--land);stroke:var(--coast);stroke-width:.7;stroke-linejoin:round", "vector-effect":"non-scaling-stroke" }, svg);
+GEO.seas.forEach(([n, x, y]) => { const t = el("text", { x, y, class:"sea" }, svg); t.textContent = n; });
+const gLayers = el("g", { "clip-path":"url(#landclip)" }, svg);
+const gSel = el("g", { "clip-path":"url(#landclip)", style:"pointer-events:none" }, svg);
+const gPts = el("g", { style:"pointer-events:none" }, svg);
+const gLab = el("g", {}, svg);
+const gMark = el("g", { style:"pointer-events:none" }, svg);
+const gHit = el("g", { style:"visibility:hidden;pointer-events:none" }, svg);
+const hit = {}, bbox = {};
+for (const [k, r] of Object.entries(GEO.regions)) { hit[k] = el("path", { d: r.d }, gHit); }
+requestAnimationFrame(() => { for (const k in hit) { try { bbox[k] = hit[k].getBBox(); } catch (_) { bbox[k] = { x:0, y:0, width:W, height:H }; } } render(); });
+
+const fcache = {};
+function filterFor(k, b) {
+  if (!b) return null;
+  const id = `f-${k}-${b}`;
+  if (!fcache[id]) {
+    const bb = bbox[k] || { x:0, y:0, width:W, height:H }, m = BSD[b] * 3.2;
+    const f = el("filter", { id, filterUnits:"userSpaceOnUse", x: bb.x - m, y: bb.y - m, width: bb.width + 2*m, height: bb.height + 2*m, "color-interpolation-filters":"sRGB" }, defs);
+    el("feGaussianBlur", { stdDeviation: BSD[b] }, f);
+    fcache[id] = id;
+  }
+  return `url(#${id})`;
+}
+
+/* ---------- filtering ---------- */
+const visible = e => (!e.disp || tog.disp) && (e.st !== "aborted" || tog.abort) && (!e.u || tog.und);
+const active = () => { const [a, b] = win; return E.filter(e => visible(e) && e.y[0] <= b && e.y[1] >= a); };
+
+/* ---------- render ---------- */
+let raf = 0;
+const schedule = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); };
+
+function render() {
+  const act = active();
+  const groups = new Map();
+  for (const e of act) for (const { k, j } of e.rs) {
+    const key = `${k}|${j}|${e.disp ? 1 : 0}`;
+    let g = groups.get(key);
+    if (!g) groups.set(key, g = { k, j, disp: !!e.disp, q: 0, b: 3, list: [] });
+    const q = e.st === "aborted" ? 1 : e.q;
+    g.q = Math.max(g.q, q); g.b = Math.min(g.b, e.b); g.list.push(e);
+  }
+  const gs = [...groups.values()].sort((A, B) => (ORDER.indexOf(A.k) - ORDER.indexOf(B.k)) || (A.disp - B.disp) || (JORDER.indexOf(A.j) - JORDER.indexOf(B.j)));
+  gLayers.replaceChildren(); gPts.replaceChildren();
+  for (const g of gs) {
+    const f = filterFor(g.k, g.b);
+    const attrs = { opacity: g.disp ? .85 : QOP[g.q] };
+    if (f) attrs.filter = f;
+    const L = el("g", attrs, gLayers);
+    el("path", { d: GEO.regions[g.k].d, style: `fill:${g.disp ? `url(#h-${g.j})` : jc(g.j)}` }, L);
+    if (POINTS.has(g.k)) {
+      const r = GEO.regions[g.k].c;
+      el("circle", { cx: r[0], cy: r[1], r: 1.6, style: `fill:${jc(g.j)}` }, gPts);
+    }
+  }
+  drawSelection();
+  placeLabels(gs);
+  // readout
+  $("#span").textContent = fspan(win[0], win[1]);
+  const regs = new Set(); act.forEach(e => e.rs.forEach(r => regs.add(r.k)));
+  const nc = act.filter(e => !e.disp).length, nd = act.length - nc;
+  $("#count").textContent = `${nc} census${nc === 1 ? "" : "es"}${nd ? ` + ${nd} disputed` : ""} · ${regs.size} area${regs.size === 1 ? "" : "s"}`;
+  drawWindow();
+  renderPanel(act);
+}
+
+/* labels: sized to stay legible on screen */
+let lastGroups = [];
+function placeLabels(gs = lastGroups) {
+  lastGroups = gs;
+  gLab.replaceChildren();
+  const vb = svg.viewBox.baseVal, scale = (svg.clientWidth || W) / vb.width;
+  const fs = 11 / scale;
+  if (fs > 19) return;
+  const seen = new Set(), placed = [];
+  const ks = [...new Set(gs.map(g => g.k))].filter(k => k !== "imperium").sort((a, b) => POINTS.has(b) - POINTS.has(a));
+  for (const k of ks) {
+    if (seen.has(k)) continue; seen.add(k);
+    const [x, y] = GEO.regions[k].c, pt = POINTS.has(k);
+    const lx = pt ? x + 6 / scale + (bbox[k] ? bbox[k].width / 2 : 0) : x, ly = pt ? y + fs * .35 : y;
+    if (!pt && placed.some(([px, py]) => Math.abs(px - lx) < 60 / scale && Math.abs(py - ly) < 16 / scale)) continue;
+    placed.push([lx, ly]);
+    const t = el("text", { x: lx, y: ly, class:"rlab", "text-anchor": pt ? "start" : "middle", style:`font-size:${fs}px;stroke-width:${3 / scale}px` }, gLab);
+    t.textContent = SHORT[k] || RN[k];
+  }
+}
+
+function drawSelection() {
+  gSel.replaceChildren(); gMark.replaceChildren();
+  if (!sel) return;
+  const vb = svg.viewBox.baseVal, scale = (svg.clientWidth || W) / vb.width;
+  if (sel.type === "region" && GEO.regions[sel.k]) {
+    el("path", { d: GEO.regions[sel.k].d, style:"fill:none;stroke:var(--ink);stroke-width:1.4;stroke-dasharray:4 3", "vector-effect":"non-scaling-stroke" }, gSel);
+  } else if (sel.type === "point") {
+    const r = 7 / scale;
+    el("circle", { cx: sel.x, cy: sel.y, r, style:`fill:none;stroke:var(--panel);stroke-width:${4/scale}` }, gMark);
+    el("circle", { cx: sel.x, cy: sel.y, r, style:`fill:none;stroke:var(--ink);stroke-width:${1.6/scale}` }, gMark);
+    el("circle", { cx: sel.x, cy: sel.y, r: 1.6 / scale, style:"fill:var(--ink)" }, gMark);
+  }
+}
+
+/* ---------- hit testing ---------- */
+function regionsAt(x, y) {
+  const p = svg.createSVGPoint(); p.x = x; p.y = y;
+  const vb = svg.viewBox.baseVal, scale = (svg.clientWidth || W) / vb.width;
+  const out = new Set();
+  for (const k of POINTS) { const [cx, cy] = GEO.regions[k].c, rad = Math.max((bbox[k]?.width || 0) / 2, 12 / scale); if (Math.hypot(x - cx, y - cy) <= rad) out.add(k); }
+  let onLand = true;
+  try { onLand = landPath.isPointInFill(p); } catch (_) {}
+  if (!onLand && !out.size) return out;
+  for (const k in hit) { if (POINTS.has(k)) continue; try { if (hit[k].isPointInFill(p)) out.add(k); } catch (_) {} }
+  return out;
+}
+
+/* ---------- panel ---------- */
+const qdots = (q, c) => `<span class="q" style="--c:${c}" title="${esc(QLAB[q])}">${[1,2,3].map(i => `<i class="${i <= q ? "" : "off"}"></i>`).join("")}</span>`;
+function entryHTML(e, j) {
+  const c = jc(j || e.j);
+  const date = e.dl ? `${esc(e.dl)} <span style="color:var(--muted)">(${fr(e.y[0], e.y[1])})</span>` : fr(e.y[0], e.y[1]);
+  const badges = [e.disp ? `<span class="badge disp">Disputed</span>` : "", ST[e.st] ? `<span class="badge">${ST[e.st]}</span>` : ""].join("");
+  return `<li style="--c:${c}"><span class="d">${date} ${qdots(e.st === "aborted" ? 1 : e.q, c)} ${badges}</span><span class="o">${esc(e.off)}</span><span class="e">${esc(e.emp)}${e.note ? " · " + esc(e.note) : ""}</span></li>`;
+}
+function groupHTML(k, items) {
+  items.sort((a, b) => a.e.y[0] - b.e.y[0] || a.e.id - b.e.id);
+  const js = [...new Set(items.map(i => i.j))];
+  return `<div class="grp"><h4><span class="dots">${js.map(j => `<i style="background:${jc(j)}"></i>`).join("")}</span>${esc(RN[k] || k)}</h4><ul class="cens">${items.map(i => entryHTML(i.e, i.j)).join("")}</ul></div>`;
+}
+function renderPanel(act) {
+  const P = $("#panel");
+  const byRegion = new Map();
+  for (const e of act) for (const { k, j } of e.rs) { if (!byRegion.has(k)) byRegion.set(k, []); byRegion.get(k).push({ e, j }); }
+  if (sel) {
+    let keys;
+    if (sel.type === "region") keys = [sel.k];
+    else { const at = regionsAt(sel.x, sel.y); keys = ORDER.filter(k => at.has(k)); }
+    const hits = keys.filter(k => byRegion.has(k));
+    const title = sel.type === "region" ? (RN[sel.k] || sel.k) : (hits.length ? "Censuses at this spot" : "Nothing here in this span");
+    const where = sel.type === "point" ? keys.filter(k => k !== "imperium").map(k => RN[k]).slice(0, 3).join(", ") : "";
+    let body = hits.map(k => groupHTML(k, byRegion.get(k))).join("");
+    if (!hits.length) body = `<p class="empty">${where ? `No catalogued census for ${esc(where)} between ${fspan(win[0], win[1])}.` : `Open sea, or outside any catalogued census area.`} Widen the year span or pick another area.</p>`;
+    P.innerHTML = `<div class="ph"><div><h2>${esc(title)}</h2><div class="meta">${fspan(win[0], win[1])}${where && hits.length ? " · " + esc(where) : ""}</div></div><button type="button" class="close" id="pclose">All areas</button></div>${body}`;
+    $("#pclose").onclick = () => { sel = null; render(); };
+    return;
+  }
+  const rows = [...byRegion.entries()].sort((a, b) => b[1].length - a[1].length || ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]));
+  const unloc = act.filter(e => !e.rs.length);
+  P.innerHTML = `<div class="ph"><div><h2>In this span</h2><div class="meta">${fspan(win[0], win[1])}</div></div></div>` +
+    (rows.length ? `<ul class="reglist">${rows.map(([k, items]) => { const js = [...new Set(items.map(i => i.j))]; const d = items.every(i => i.e.disp); return `<li><button type="button" data-k="${k}"><span class="dots">${js.map(j => `<i style="background:${jc(j)}"></i>`).join("")}</span>${esc(RN[k] || k)}${d ? ' <span class="badge disp">Disputed</span>' : ""}<span class="n">${items.length}</span></button></li>`; }).join("")}</ul>` : `<p class="empty">No catalogued census falls in this span. Widen it with the handles above.</p>`) +
+    (unloc.length ? `<div class="grp"><h4>Location unknown</h4><ul class="cens">${unloc.map(e => entryHTML(e)).join("")}</ul></div>` : "") +
+    `<p class="empty">Click the map or an area above for the list of censuses.</p>`;
+  P.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { sel = { type:"region", k: b.dataset.k }; render(); if (innerWidth < 1040) $("#panel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start" }); });
+}
+
+/* ---------- timeline ---------- */
+const hist = $("#hist");
+const tx = y => (y - MIN) / (MAX - MIN) * 1000;
+(function drawHist() {
+  const BIN = 5, n = Math.ceil((MAX - MIN) / BIN), counts = Array.from({ length: n }, () => ({}));
+  for (const e of E) {
+    if (e.disp || e.y[1] - e.y[0] > 25) continue;
+    for (let i = Math.floor((e.y[0] - MIN) / BIN); i <= Math.floor((e.y[1] - MIN) / BIN) && i < n; i++) if (i >= 0) counts[i][e.j] = (counts[i][e.j] || 0) + 1;
+  }
+  const max = Math.max(...counts.map(c => Object.values(c).reduce((a, b) => a + b, 0)));
+  el("line", { x1:0, x2:1000, y1:40, y2:40, style:"stroke:var(--rule);stroke-width:1", "vector-effect":"non-scaling-stroke" }, hist);
+  for (let y = -400; y <= 400; y += 100) el("line", { x1: tx(y), x2: tx(y), y1: 40, y2: 46, style:"stroke:var(--muted);stroke-width:1", "vector-effect":"non-scaling-stroke" }, hist);
+  counts.forEach((c, i) => {
+    let y0 = 40; const x = tx(MIN + i * BIN), w = 1000 / n - .8;
+    for (const j of JORDER) { if (!c[j]) continue; const h = c[j] / max * 34; y0 -= h; el("rect", { x, y: y0, width: w, height: h, style:`fill:${jc(j)}` }, hist); }
+  });
+  el("rect", { id:"winband", x:0, y:0, width:0, height:46, style:"fill:var(--band);fill-opacity:.16;stroke:var(--band);stroke-width:1.5", "vector-effect":"non-scaling-stroke" }, hist);
+})();
+function drawWindow() {
+  const b = document.getElementById("winband"); if (!b) return;
+  const x0 = tx(win[0]), x1 = tx(win[1]);
+  b.setAttribute("x", x0 - 1.5); b.setAttribute("width", Math.max(3, x1 - x0 + 3));
+  $("#lo").value = win[0]; $("#hi").value = win[1];
+  $("#lo").setAttribute("aria-valuetext", fy(win[0])); $("#hi").setAttribute("aria-valuetext", fy(win[1]));
+}
+let last = { lo: win[0], hi: win[1] };
+function onRange(which) {
+  let v = +$("#" + which).value;
+  if (v === 0) v = last[which] > 0 ? -1 : 1;
+  if (which === "lo") { win[0] = Math.min(v, win[1]); } else { win[1] = Math.max(v, win[0]); }
+  last = { lo: win[0], hi: win[1] };
+  stopPlay(); schedule();
+}
+$("#lo").addEventListener("input", () => onRange("lo"));
+$("#hi").addEventListener("input", () => onRange("hi"));
+
+const PRESETS = [["Mid-Republic", -300, -150], ["Late Republic", -133, -28], ["Augustus", -27, 14], ["AD 6", 6, 6], ["Principate", 14, 235], ["Tetrarchy", 284, 312], ["Everything", MIN, MAX]];
+PRESETS.forEach(([n, a, b]) => { const bt = document.createElement("button"); bt.type = "button"; bt.textContent = n; bt.onclick = () => { stopPlay(); win = [a, b]; last = { lo:a, hi:b }; schedule(); }; $("#presets").appendChild(bt); });
+
+[["t-disp","disp"],["t-abort","abort"],["t-und","und"]].forEach(([id, k]) => $("#" + id).addEventListener("change", ev => { tog[k] = ev.target.checked; schedule(); }));
+
+/* play: slide the current span forward */
+let playT = null;
+function stopPlay() { if (playT) { clearInterval(playT); playT = null; $("#play").textContent = "Play ▸"; $("#play").classList.remove("on"); $("#play").setAttribute("aria-pressed", "false"); } }
+$("#play").onclick = () => {
+  if (playT) return stopPlay();
+  let w = win[1] - win[0]; if (w < 10 || w > 200) w = 25;
+  if (win[0] + w >= MAX) win = [MIN, MIN + w];
+  win = [win[0], win[0] + w];
+  $("#play").textContent = "Pause ❚❚"; $("#play").classList.add("on"); $("#play").setAttribute("aria-pressed", "true");
+  playT = setInterval(() => {
+    let a = win[0] + 2, b = win[1] + 2;
+    if (b > MAX) return stopPlay();
+    if (a === 0) a = 1; if (b === 0) b = 1;
+    win = [a, b]; last = { lo:a, hi:b }; render();
+  }, 70);
+};
+
+/* ---------- pan & zoom ---------- */
+let vb = { x:0, y:0, w:W, h:H };
+function applyVB() {
+  vb.w = Math.min(W, Math.max(W / 10, vb.w)); vb.h = vb.w * H / W;
+  vb.x = Math.min(W - vb.w, Math.max(0, vb.x)); vb.y = Math.min(H - vb.h, Math.max(0, vb.y));
+  svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  svg.classList.toggle("zoomed", vb.w < W - 1);
+  placeLabels(); drawSelection();
+}
+function toUser(ev) { const r = svg.getBoundingClientRect(); return { x: vb.x + (ev.clientX - r.left) / r.width * vb.w, y: vb.y + (ev.clientY - r.top) / r.height * vb.h }; }
+function zoomAt(p, k) { const nw = Math.min(W, Math.max(W / 10, vb.w * k)), kk = nw / vb.w; vb.x = p.x - (p.x - vb.x) * kk; vb.y = p.y - (p.y - vb.y) * kk; vb.w = nw; applyVB(); }
+svg.addEventListener("wheel", ev => { ev.preventDefault(); zoomAt(toUser(ev), Math.exp(ev.deltaY * .0016)); }, { passive:false });
+$("#zin").onclick = () => zoomAt({ x: vb.x + vb.w / 2, y: vb.y + vb.h / 2 }, .7);
+$("#zout").onclick = () => zoomAt({ x: vb.x + vb.w / 2, y: vb.y + vb.h / 2 }, 1 / .7);
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
+  const [x0, y0, x1, y1] = GEO.views[b.dataset.view];
+  const w = Math.max(x1 - x0, (y1 - y0) * W / H);
+  vb = { x: (x0 + x1) / 2 - w / 2, y: (y0 + y1) / 2 - w * H / W / 2, w }; applyVB();
+});
+let drag = null;
+svg.addEventListener("pointerdown", ev => { drag = { x: ev.clientX, y: ev.clientY, vx: vb.x, vy: vb.y, moved: false, id: ev.pointerId }; });
+svg.addEventListener("pointermove", ev => {
+  if (!drag || ev.pointerId !== drag.id) return;
+  const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) > 5 && vb.w < W - 1) { drag.moved = true; svg.setPointerCapture(ev.pointerId); svg.classList.add("dragging"); }
+  if (drag.moved) { const r = svg.getBoundingClientRect(); vb.x = drag.vx - dx / r.width * vb.w; vb.y = drag.vy - dy / r.height * vb.h; applyVB(); }
+});
+svg.addEventListener("pointerup", ev => {
+  if (!drag) return;
+  const moved = drag.moved; drag = null; svg.classList.remove("dragging");
+  if (moved) return;
+  const p = toUser(ev);
+  sel = { type:"point", x: p.x, y: p.y };
+  render();
+  $("#hint").hidden = true;
+});
+svg.addEventListener("pointercancel", () => { drag = null; svg.classList.remove("dragging"); });
+addEventListener("resize", () => { placeLabels(); drawSelection(); });
+
+/* ---------- legend ---------- */
+$("#lg-j").innerHTML = JORDER.map(j => `<li><span class="sw" style="background:${jc(j)}"></span>${esc(J[j])}</li>`).join("") +
+  `<li><svg width="22" height="14" aria-hidden="true"><rect width="22" height="14" rx="2" style="fill:url(#h-imp)"/></svg>Disputed claim (hatched)</li>`;
+$("#lg-q").innerHTML = [3,2,1].map(q => `<li><span class="sw" style="background:var(--j-imp);opacity:${QOP[q]}"></span>${esc(QLAB[q])}</li>`).join("") +
+  `<li><span class="sw" style="background:var(--j-rome);opacity:${QOP[1]}"></span>Aborted censorships draw at the faintest level</li>`;
+$("#lg-b").innerHTML = BLAB.map((t, i) => `<li><svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true">${i ? `<filter id="lgb${i}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${[0, .9, 2.2, 4][i]}"/></filter>` : ""}<rect x="8" y="5" width="14" height="10" rx="1" style="fill:var(--j-sen);opacity:.85" ${i ? `filter="url(#lgb${i})"` : ""}/></svg>${esc(t)}</li>`).join("");
+</script>
+
+</body></html>
